@@ -59,7 +59,9 @@ void isisCPPFunctionWrapper
     useError = false;
   }
   if (fluxSize < Nflux) {
-    std::cerr << "isisCPPFunctionWrapper: unexpected array size\nfluxArray.size = " << fluxSize << "\nNFlux = " << Nflux << endl;
+    std::cerr << "isisCPPFunctionWrapper: unexpected array " <<
+      "size\nfluxArray.size = " << fluxSize << "\nNFlux = " <<
+      Nflux << std::endl;
     for (size_t i = 0; i < Nflux; i++) {
       flux[i] = 0;
       fluxError[i] = 0;
