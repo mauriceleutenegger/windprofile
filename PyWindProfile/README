@@ -1,0 +1,36 @@
+To build and install the python interface for windprofile:
+
+./setup.py install --prefix=/path/to/python/libs/
+or
+./setup.py install --home=~
+(will install in ~/lib/python/)
+This will compile and install the module. 
+
+The scripts testLx.py and testOpticalDepth.py give an idea of how to invoke the functions.
+They are:
+
+PyWindProfile.Lx (x, q, U0, beta, TauStar, h, Tau0Star, betaSobolev,\
+         isOpticallyThick, isNumerical, isAnisotropic, isRosseland,\
+         isExpansion)
+where x is an array of double to calculate Lx on, 
+the next seven parameters are double, and the last five are (bool) int.
+
+PyWindProfile.OpticalDepth (p, z, Taustar, h, beta, 
+			 numerical, anisotropic, rosseland, expansion)
+where p and z are double coordinates to find tpz for, 
+the next three parameters are double,
+and the last four are (bool) int.
+
+PyWindProfile.OpticalDepth2D (p, z, Taustar, h, beta, 
+			 numerical, anisotropic, rosseland, expansion)
+is the same as OpticalDepth, but it allows you to pass two numpy.array
+objects instead of individual p and z coordinates. This can be
+quite a bit faster, depending on the number of points.
+
+Requirements:
+python 
+numpy
+pylab (if you want to make test plots)
+
+I have tested this on EPD 7.3.1: Python 2.7.3; numpy 1.6.1. 
+ML Oct 2012.

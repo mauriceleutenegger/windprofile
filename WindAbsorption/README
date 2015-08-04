@@ -1,0 +1,24 @@
+To generate the fits file for windtabs, you need to build and install windabsorption:
+
+./setup.py install --prefix=/path/to/python/libs/
+or
+./setup.py install --home=~
+(will install in ~/lib/python/)
+This will compile and install the module. The purpose of the module is to calculate 
+the transmission of the wind as a function of tau_*. It can also take other parameters
+than the defaults. 
+
+The script generate_windtabs.py will call windabsorption to
+output a FITS file for use in the XSPEC local model windtabs. You can then 
+copy this file into the dat/ directory on the local model root tree.
+
+The script porous_windtabs.py is another example, finding T(tau) for
+a variety of porosity lengths, and also generating FITS output files.
+
+Finally plot_windtabs.py will take the output of the previous two scripts and
+plot them for comparison.
+
+Requirements:
+python2.5
+numpy
+pyfits

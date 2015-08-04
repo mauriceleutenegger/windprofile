@@ -1,0 +1,286 @@
+windprof        18     0.     1.e20   C_windprof   add  0
+q           " "     0.0      -0.99 -0.99    5.     5.   -0.1
+taustar     " "     1.0       0.    0.    100.   100.   -0.1
+u0          " "     0.5       0.1   0.1     0.99   0.99 -0.1
+umin	    " "	    0.	      0.    0.	    0.9	   0.9	-0.1
+h           " "     0.0       0.    0.    100.   100.   -0.1
+tau0star    " "     0.0       0.    0.   1000.  1000.   -0.1
+beta        " "     1.0       0.    0.      4.     4.   -0.1
+betaSob     " "     0.        0.    0.      4.     4.   -0.1
+kappaRatio  " "	    0.	      0.    0.	  100.	 100.	-0.1
+$numerica   0
+$anisotro   0
+$rosselan   0
+$expansio   0
+$thick      0
+waveleng    "A"     24.781    1.    1.    200.   200.   -0.1
+shift       "mA"    0.0    -100. -100.    100.   100.   -0.1
+velocity    "km/s"  2485.0  100.  100.   5000.  5000.   -0.1
+$verbose    0
+
+hwind           18     0.     1.e20   C_hwind   add  0
+q           " "     0.0      -0.99 -0.99    5.     5.   -0.1
+taustar     " "     1.0       0.    0.    100.   100.   -0.1
+u0          " "     0.5       0.1   0.1     0.99   0.99 -0.1
+umin	    " "	    0.	      0.    0.	    0.9	   0.9	-0.1
+h           " "     0.0       0.    0.    100.   100.   -0.1
+tau0star    " "     0.0       0.    0.   1000.  1000.   -0.1
+beta        " "     1.0       0.    0.      4.     4.   -0.1
+betaSob     " "     0.        0.    0.      4.     4.   -0.1
+kappaRatio  " "	    0.	      0.    0.	  100.	 100.	-0.1
+$numerica   0
+$anisotro   0
+$rosselan   0
+$expansio   0
+$thick      0
+$Z          8
+shift       "mA"    0.0    -100. -100.    100.   100.   -0.1
+velocity    "km/s"  2485.0  100.  100.   5000.  5000.   -0.1
+$verbose    0
+
+hewind         20     0.       1.e20  C_hewind    add  0
+q           " "      0.0     -0.99 -0.99    5.     5.   -0.1
+taustar     " "      1.0      0.    0.    100.   100.   -0.1
+u0          " "      0.5      0.1   0.1     0.99   0.99 -0.1
+umin	    " "	    0.	      0.    0.	    0.9	   0.9	-0.1
+h           " "     0.0       0.    0.    100.   100.   -0.1
+tau0star    " "     0.0       0.    0.   1000.  1000.   -0.1
+beta        " "      1.0      0.    0.      4.     4.   -0.1
+betaSob     " "      0.       0.    0.      4.     4.   -0.1
+G           " "      0.7      0.1   0.1    10.    10.   -0.1
+kappaRatio  " "	    0.	      0.    0.	  100.	 100.	-0.1
+$numerica   0
+$anisotro   0
+$rosselan   0
+$expansio   0
+$thick      0
+$Z          12
+shift       "mA"     0.0   -100. -100.    100.   100.   -0.1
+velocity    "km/s"  2485.0  100.  100.   5000.  5000.   -0.1
+phiratio    " "      1.31e2   0.    0.      1.e8   1.e8 -0.1
+$verbose    0
+
+abswind       7     0.      1.e20   C_abswind   mul  0
+q           " "      0.0     -0.99 -0.99    5.     5.   -0.1
+taustar     " "      1.0      0.    0.    100.   100.   -0.1
+u0          " "      0.5      0.1   0.1     0.99   0.99 -0.1
+umin	    " "	    0.	      0.    0.	    0.9	   0.9	-0.1
+beta        " "      1.0      0.    0.      4.     4.   -0.1
+waveleng    "A"     24.781    1.    1.    200.   200.   -0.1
+velocity    "km/s"  2485.0  100.  100.   5000.  5000.   -0.1
+
+windcabs    5    0.  1.e20   C_windcabs mul 0 
+q           " "      0.      -0.99 -0.99    5.     5.   -0.1
+Sigma*      "g/cm^2" 1.e-2    0.    0.      1.e2   1.e2 -0.1
+u0          " "     0.5       0.1   0.1     0.99   0.99 -0.1          
+umin        " "     0.0       0.0   0.0     0.9    0.9  -0.1          
+beta        " "     1.0       0.    0.      4.     4.   -0.1
+
+windtabs    1    0.  1.e20    C_windtabs mul 0
+Sigma*     "g/cm^2"  1.e-2    0.   0.      1.e2  1.e2   -0.1
+
+slabtabs    1    0.  1.e20    C_slabtabs mul 0
+nH	    "10^22"   1.   0.   0.      1.e2  1.e2   -0.1
+
+slamtabs    1    0.  1.e20    C_slamtabs mul 0
+Sigma       "g/cm^2"  1.e-2    0.   0.      1.e2  1.e2   -0.1
+
+hgauss     3     0.  1.e20   C_hgauss  add 0
+sigma_v     "km/s"   0.        0.      0.  10000. 10000. -0.1
+delta_v     "km/s"   0.   -10000. -10000.  10000. 10000. -0.1
+Z           " "      8.        6.      6.     26.    26. -0.1
+
+hcgauss     4     0.  1.e20   C_hcgauss  add 0
+sigma_v     "km/s"   0.        0.      0.  10000. 10000. -0.1
+delta_v     "km/s"   0.   -10000. -10000.  10000. 10000. -0.1
+Z           " "      8.        6.      6.     26.    26. -0.1
+delta_l     "mA"     0.     -100.   -100.    100.   100. -0.1
+
+hegauss     5     0.  1.e20   C_hegauss  add 0
+R           " "      3.        0.      0.     20.    20. -0.1
+G           " "      1.        0.2     0.2    10.    10. -0.1
+sigma_v     "km/s"   0.        0.      0.  10000. 10000. -0.1
+delta_v     "km/s"   0.   -10000. -10000.  10000. 10000. -0.1
+Z           " "      8.        6.      6.     26.    26. -0.1
+
+hecgauss     6     0.  1.e20   C_hecgauss  add 0
+R           " "      3.        0.      0.     20.    20. -0.1
+G           " "      1.        0.2     0.2    10.    10. -0.1
+sigma_v     "km/s"   0.        0.      0.  10000. 10000. -0.1
+delta_v     "km/s"   0.   -10000. -10000.  10000. 10000. -0.1
+Z           " "      8.        6.      6.     26.    26. -0.1
+delta_l     "mA"     0.     -100.   -100.    100.   100. -0.1
+
+vwgauss     3     0.  1.e20   C_vwgauss  add 0
+sigma_v     "km/s"   0.        0.      0.  10000. 10000. -0.1
+delta_v     "km/s"   0.   -10000. -10000.  10000. 10000. -0.1
+waveleng    "A"     20.        1.      1.    200.   200. -0.1
+
+vwcgauss     4     0.  1.e20   C_vwcgauss  add 0
+sigma_v     "km/s"   0.        0.      0.  10000. 10000. -0.1
+delta_v     "km/s"   0.   -10000. -10000.  10000. 10000. -0.1
+waveleng    "A"     20.        1.      1.    200.   200. -0.1
+delta_l     "mA"     0.     -100.   -100.    100.   100. -0.1
+
+wgauss     3     0.  1.e20   C_wgauss  add 0
+sigma_l     "mA"     0.      0.   0.   500.   500. -0.1
+delta_l     "mA"      0.     -500.   -500.   500.   500. -0.1
+waveleng    "A"     20.        1.      1.    200.   200. -0.1
+
+vwlorent     3     0.  1.e20   C_vwlorent  add 0
+gamma_v     "km/s"   0.        0.      0.  10000. 10000. -0.1
+delta_v     "km/s"   0.   -10000. -10000.  10000. 10000. -0.1
+waveleng    "A"     20.        1.      1.    200.   200. -0.1
+
+vwcloren     4     0.  1.e20   C_vwcloren  add 0
+gamma_v     "km/s"   0.        0.      0.  10000. 10000. -0.1
+delta_v     "km/s"   0.   -10000. -10000.  10000. 10000. -0.1
+waveleng    "A"     20.        1.      1.    200.   200. -0.1
+delta_l     "mA"     0.     -100.   -100.    100.   100. -0.1
+
+wlorentz     3     0.  1.e20   C_wlorentz  add 0
+gamma_l     "mA"     0.      0.   0.   500.   500. -0.1
+delta_l     "mA"      0.     -500.   -500.   500.   500. -0.1
+waveleng    "A"     20.        1.      1.    200.   200. -0.1
+
+gratprof    4     0.    1.e20   C_gratprof  add 0
+sigma_l	    "mA"    0.	     0.   0.   1000.	1000.   -0.1
+gamma_l	    "mA"    0.	     0.   0.   1000.	1000.   -0.1
+gausfrac    ""      0.2	     0.   0.   100.	100.   -0.1
+waveleng    "A "    20.	     1.   1.   200.	200.   -0.1
+
+gratproe    4     0.    1.e20   C_gratprof  add 0 energy
+sigma_e	    "keV"    0.	     0.   0.   200.	200.   -0.1
+gamma_e	    "keV"    0.	     0.   0.   200.	200.   -0.1
+gausfrac    ""      0.2	     0.   0.   100.	100.   -0.1
+energy      "keV"    20.     0.01 0.01 2000.	2000.   -0.1
+
+gratpr2     6     0.    1.e20   C_gratpr2  add 0
+sigma_l	    "mA"    0.	     0.   0.   1000.	1000.   -0.1
+gamma_l1    "mA"    0.	     0.   0.   1000.	1000.   -0.1
+gamma_l2    "mA"    0.	     0.   0.   1000.	1000.   -0.1
+gausfrac    ""	    0.2	     0.	  0.   1.	1.	-0.1
+ratio_12    ""      1.	     0.   0.   100.	100.   -0.1
+waveleng    "A "    20.	     1.   1.   200.	200.   -0.1
+
+gratpr2e     6     0.    1.e20   C_gratpr2  add 0 energy
+sigma_e	    "keV"    0.	     0.   0.   200.	200.   -0.1
+gamma_e1    "keV"    0.	     0.   0.   200.	200.   -0.1
+gamma_e2    "keV"    0.	     0.   0.   200.	200.   -0.1
+gausfrac    ""	    0.2	     0.	  0.   1.	1.	-0.1
+ratio_12    ""      1.	     0.   0.   100.	100.   -0.1
+energy    "keV"    20.	     0.01 0.01 2000.	2000.   -0.1
+
+
+wgaussisis     3     0.  1.e20   c_wgaussisis  add 0
+sigma_l     "mA"     0.      0.   0.   500.   500. -0.1
+delta_l     "mA"      0.     -500.   -500.   500.   500. -0.1
+waveleng    "A"     20.        1.      1.    200.   200. -0.1
+
+vwgaussisis     3     0.  1.e20   c_vwgaussisis  add 0
+sigma_v     "km/s"   0.        0.      0.  10000. 10000. -0.1
+delta_v     "km/s"   0.   -10000. -10000.  10000. 10000. -0.1
+waveleng    "A"     20.        1.      1.    200.   200. -0.1
+
+vwcgaussisis     4     0.  1.e20   c_vwcgaussisis  add 0
+sigma_v     "km/s"   0.        0.      0.  10000. 10000. -0.1
+delta_v     "km/s"   0.   -10000. -10000.  10000. 10000. -0.1
+waveleng    "A"     20.        1.      1.    200.   200. -0.1
+delta_l     "mA"     0.     -100.   -100.    100.   100. -0.1
+
+hgaussisis     3     0.  1.e20   c_hgaussisis  add 0
+sigma_v     "km/s"   0.        0.      0.  10000. 10000. -0.1
+delta_v     "km/s"   0.   -10000. -10000.  10000. 10000. -0.1
+Z           " "      8.        6.      6.     26.    26. -0.1
+
+hcgaussisis     4     0.  1.e20   c_hcgaussisis  add 0
+sigma_v     "km/s"   0.        0.      0.  10000. 10000. -0.1
+delta_v     "km/s"   0.   -10000. -10000.  10000. 10000. -0.1
+Z           " "      8.        6.      6.     26.    26. -0.1
+delta_l     "mA"     0.     -100.   -100.    100.   100. -0.1
+
+hegaussisis     5     0.  1.e20   c_hegaussisis  add 0
+R           " "      3.        0.      0.     20.    20. -0.1
+G           " "      1.        0.2     0.2    10.    10. -0.1
+sigma_v     "km/s"   0.        0.      0.  10000. 10000. -0.1
+delta_v     "km/s"   0.   -10000. -10000.  10000. 10000. -0.1
+Z           " "      8.        6.      6.     26.    26. -0.1
+
+hecgaussisis     6     0.  1.e20   c_hecgaussisis  add 0
+R           " "      3.        0.      0.     20.    20. -0.1
+G           " "      1.        0.2     0.2    10.    10. -0.1
+sigma_v     "km/s"   0.        0.      0.  10000. 10000. -0.1
+delta_v     "km/s"   0.   -10000. -10000.  10000. 10000. -0.1
+Z           " "      8.        6.      6.     26.    26. -0.1
+delta_l     "mA"     0.     -100.   -100.    100.   100. -0.1
+
+windprofisis       18     0.     1.e20   c_windprofisis   add  0
+q           " "     0.0      -0.99 -0.99    5.     5.   -0.1
+taustar     " "     1.0       0.    0.    100.   100.   -0.1
+u0          " "     0.5       0.1   0.1     0.99   0.99 -0.1
+umin	    " "	    0.	      0.    0.	    0.9	   0.9	-0.1
+h           " "     0.0       0.    0.    100.   100.   -0.1
+tau0star    " "     0.0       0.    0.   1000.  1000.   -0.1
+beta        " "     1.0       0.    0.      4.     4.   -0.1
+betaSob     " "     0.        0.    0.      4.     4.   -0.1
+kappaRatio  " "	    0.	      0.    0.	  100.	 100.	-0.1
+numerica    " "     0 	      0	    0	    1	   1	-0.1
+anisotro   " "     0 	      0	    0	    1	   1	-0.1
+rosselan   " "     0 	      0	    0	    1	   1	-0.1
+expansio   " "     0 	      0	    0	    1	   1	-0.1
+thick      " "     0 	      0	    0	    1	   1	-0.1
+waveleng    "A"     24.781    1.    1.    200.   200.   -0.1
+shift       "mA"    0.0    -100. -100.    100.   100.   -0.1
+velocity    "km/s"  2485.0  100.  100.   5000.  5000.   -0.1
+verbose    " "     0 	      0	    0	    1	   1	-0.1
+
+hwindisis           18     0.     1.e20   c_hwindisis   add  0
+q           " "     0.0      -0.99 -0.99    5.     5.   -0.1
+taustar     " "     1.0       0.    0.    100.   100.   -0.1
+u0          " "     0.5       0.1   0.1     0.99   0.99 -0.1
+umin	    " "	    0.	      0.    0.	    0.9	   0.9	-0.1
+h           " "     0.0       0.    0.    100.   100.   -0.1
+tau0star    " "     0.0       0.    0.   1000.  1000.   -0.1
+beta        " "     1.0       0.    0.      4.     4.   -0.1
+betaSob     " "     0.        0.    0.      4.     4.   -0.1
+kappaRatio  " "	    0.	      0.    0.	  100.	 100.	-0.1
+numerica    " "     0.        0.    0.      1.     1.   -0.1
+anisotro    " "     0.        0.    0.      1.     1.   -0.1
+rosselan    " "     0.        0.    0.      1.     1.   -0.1
+expansio    " "     0.        0.    0.      1.     1.   -0.1
+thick       " "     0.        0.    0.      1.     1.   -0.1
+Z           " "     8.        6.    6.     16.    16.   -0.1
+shift       "mA"    0.0    -100. -100.    100.   100.   -0.1
+velocity    "km/s"  2485.0  100.  100.   5000.  5000.   -0.1
+verbose     " "     0.        0.    0.      1.     1.   -0.1
+
+hewindisis         20     0.       1.e20  c_hewindisis    add  0
+q           " "      0.0     -0.99 -0.99    5.     5.   -0.1
+taustar     " "      1.0      0.    0.    100.   100.   -0.1
+u0          " "      0.5      0.1   0.1     0.99   0.99 -0.1
+umin	    " "	    0.	      0.    0.	    0.9	   0.9	-0.1
+h           " "     0.0       0.    0.    100.   100.   -0.1
+tau0star    " "     0.0       0.    0.   1000.  1000.   -0.1
+beta        " "      1.0      0.    0.      4.     4.   -0.1
+betaSob     " "      0.       0.    0.      4.     4.   -0.1
+G           " "      0.7      0.1   0.1    10.    10.   -0.1
+kappaRatio  " "	    0.	      0.    0.	  100.	 100.	-0.1
+numerica   " "	     0.	      0.    0.	    1. 	   1.	-0.1
+anisotro   " "	     0.	      0.    0.	    1. 	   1.	-0.1
+rosselan   " "	     0.	      0.    0.	    1. 	   1.	-0.1
+expansio   " "	     0.	      0.    0.	    1. 	   1.	-0.1
+thick      " "	     0.	      0.    0.	    1. 	   1.	-0.1
+Z          " "	     12.      6.    6.	    16.	   16.	-0.1
+shift       "mA"     0.0   -100. -100.    100.   100.   -0.1
+velocity    "km/s"  2485.0  100.  100.   5000.  5000.   -0.1
+phiratio    " "      1.31e2   0.    0.      1.e8   1.e8 -0.1
+verbose    " "	     0.	      0.    0.	    1. 	   1.	-0.1
+
+windtabsisis    1    0.  1.e20    c_windtabsisis mul 0 
+Sigma*     "g/cm^2"  1.e-2    0.   0.      1.e2  1.e2   -0.1
+
+slabtabsisis    1    0.  1.e20    c_slabtabsisis mul 0
+nH	    "10^22"   1.   0.   0.      1.e2  1.e2   -0.1
+
+slamtabsisis    1    0.  1.e20    c_slamtabsisis mul 0
+Sigma       "g/cm^2"  1.e-2    0.   0.      1.e2  1.e2   -0.1
