@@ -52,11 +52,11 @@ extern "C" void slamtabs
  const string& init);
 
 
-extern "C" void slabtabsisis
+extern "C" void C_slabtabs
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init);
 
-extern "C" void slamtabsisis
+extern "C" void C_slamtabs
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init);
 
@@ -120,7 +120,7 @@ void slabAbsorption (const RealArray& energy, const RealArray& parameter,
   return;
 }
 
-void slabtabsisis
+void C_slabtabs
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init)
 {
@@ -129,7 +129,7 @@ void slabtabsisis
   return;
 }
 
-void slamtabsisis
+void C_slamtabs
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init)
 {

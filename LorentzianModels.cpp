@@ -37,7 +37,7 @@ extern "C" void vwlorent
  /*@unused@*/ int spectrum, RealArray& flux, /*@unused@*/ RealArray& fluxError,
  /*@unused@*/ const string& init);
 
-extern "C" void vwlorentisis
+extern "C" void C_vwlorent
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init);
 
@@ -46,7 +46,7 @@ extern "C" void vwcloren
  /*@unused@*/ int spectrum, RealArray& flux, /*@unused@*/ RealArray& fluxError,
  /*@unused@*/ const string& init);
 
-extern "C" void vwclorenisis
+extern "C" void C_vwcloren
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init);
 
@@ -55,7 +55,7 @@ extern "C" void wlorentz
  /*@unused@*/ int spectrum, RealArray& flux, /*@unused@*/ RealArray& fluxError,
  /*@unused@*/ const string& init);
 
-extern "C" void wlorentzisis
+extern "C" void C_wlorentz
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init);
 
@@ -112,7 +112,7 @@ void wlorentz
 
 /*----------------Calls to isis C-C++ wrapper function--------------*/
 
-void wlorentzisis
+void C_wlorentz
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init)
 {
@@ -122,7 +122,7 @@ void wlorentzisis
   return;
 }
 
-void vwlorentisis
+void C_vwlorent
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init)
 {
@@ -132,7 +132,7 @@ void vwlorentisis
   return;
 }
 
-void vwclorenisis
+void C_vwcloren
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init)
 {

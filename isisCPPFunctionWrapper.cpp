@@ -24,8 +24,7 @@
 #include "xsTypes.h"
 #include "isisCPPFunctionWrapper.h"
 #include <string>
-
-using namespace std;
+#include <iostream>
 
 void isisCPPFunctionWrapper
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
@@ -46,9 +45,34 @@ void isisCPPFunctionWrapper
   (*PointerToXspecCPPFunction) 
     (energyArray, parameterArray, spectrum, fluxArray, fluxErrorArray, 
      initString);
+  size_t fluxSize = fluxArray.size ();
+  size_t fluxErrorSize = fluxErrorArray.size ();
+  if (fluxSize == 0) {
+    for (size_t i = 0; i < Nflux; i++) {
+      flux[i] = 0;
+      fluxError[i] = 0;
+    }
+    return;
+  }
+  bool useError = true;
+  if (fluxErrorSize == 0) {
+    useError = false;
+  }
+  if (fluxSize < Nflux) {
+    std::cerr << "isisCPPFunctionWrapper: unexpected array size\nfluxArray.size = " << fluxSize << "\nNFlux = " << Nflux << endl;
+    for (size_t i = 0; i < Nflux; i++) {
+      flux[i] = 0;
+      fluxError[i] = 0;
+    }
+    return;
+  }
   for (size_t i = 0; i < Nflux; i++) {
     flux[i] = fluxArray[i];
-    fluxError[i] = fluxErrorArray[i];
+    if (fluxErrorSize == Nflux) {
+      fluxError[i] = fluxErrorArray[i];
+    } else {
+      fluxError[i] = 0;
+    }
   }
   return;
 }

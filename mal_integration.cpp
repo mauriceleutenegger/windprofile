@@ -133,7 +133,7 @@ double Integral::qag (double a, double b, int key)
     (&F, a, b, itsEpsAbs, itsEpsRel, itsLimit, key, itsWorkspace, 
      &itsResult, &itsAbsErr);
   if (itsStatus) {
-    handleError ("qags");
+    handleError ("qag");
     return 0.;
   }
   return itsResult;

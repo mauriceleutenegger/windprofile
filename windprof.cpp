@@ -29,13 +29,14 @@
 static const size_t WINDPROF_N_PARAMETERS (18);
 static const size_t HWIND_N_PARAMETERS (18);
 static const size_t HEWIND_N_PARAMETERS (20);
+static const size_t ABSWIND_N_PARAMETERS (7);
 
 extern "C" void windprof
 (const RealArray& energy, const RealArray& parameter, 
  /*@unused@*/ int spectrum, RealArray& flux, /*@unused@*/ RealArray& fluxError,
  /*@unused@*/ const string& init);
 
-extern "C" void windprofisis
+extern "C" void C_windprof
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init);
 
@@ -44,7 +45,7 @@ extern "C" void hwind
  /*@unused@*/ int spectrum, RealArray& flux, /*@unused@*/ RealArray& fluxError,
  /*@unused@*/ const string& init);
 
-extern "C" void hwindisis
+extern "C" void C_hwind
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init);
 
@@ -53,7 +54,7 @@ extern "C" void hewind
  /*@unused@*/ int spectrum, RealArray& flux, /*@unused@*/ RealArray& fluxError,
  /*@unused@*/ const string& init);
 
-extern "C" void hewindisis
+extern "C" void C_hewind
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init);
 
@@ -61,6 +62,10 @@ extern "C" void abswind
 (const RealArray& energy, const RealArray& parameter, 
  /*@unused@*/ int spectrum, RealArray& flux, /*@unused@*/ RealArray& fluxError,
  /*@unused@*/ const string& init);
+
+extern "C" void C_abswind
+(const Real* energy, int Nflux, const Real* parameter, int spectrum, 
+ Real* flux, Real* fluxError, const char* init);
 
 void windprof
 (const RealArray& energy, const RealArray& parameter, 
@@ -108,7 +113,7 @@ void abswind
 
 /*-------------------isis C-C++ wrapper functions----------------------*/
 
-void windprofisis
+void C_windprof
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init)
 {
@@ -117,7 +122,7 @@ void windprofisis
   return;
 }
 
-void hwindisis
+void C_hwind
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init)
 {
@@ -126,7 +131,7 @@ void hwindisis
   return;
 }
 
-void hewindisis
+void C_hewind
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init)
 {
@@ -134,3 +139,13 @@ void hewindisis
 			  init, HEWIND_N_PARAMETERS, &hewind);
   return;
 }
+
+void C_abswind
+(const Real* energy, int Nflux, const Real* parameter, int spectrum, 
+ Real* flux, Real* fluxError, const char* init)
+{
+  isisCPPFunctionWrapper (energy, Nflux, parameter, spectrum, flux, fluxError,
+			  init, ABSWIND_N_PARAMETERS, &abswind);
+  return;
+}
+

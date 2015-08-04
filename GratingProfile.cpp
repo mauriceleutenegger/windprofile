@@ -31,6 +31,9 @@ using namespace std;
 #include "Utilities.h"
 #include "isisCPPFunctionWrapper.h"
 
+static const size_t GRATPROF_N_PARAMETERS (4);
+static const size_t GRATPR2_N_PARAMETERS (6);
+
 extern "C" void gratprof
 (const RealArray& energy, const RealArray& parameter, 
    /*@unused@*/ int spectrum, RealArray& flux, 
@@ -42,6 +45,24 @@ extern "C" void gratpr2
    /*@unused@*/ int spectrum, RealArray& flux, 
    /*@unused@*/ RealArray& fluxError,
  /*@unused@*/ const string& init);
+
+extern "C" void C_gratprof
+(const Real* energy, int Nflux, const Real* parameter, int spectrum, 
+ Real* flux, Real* fluxError, const char* init)
+{
+  isisCPPFunctionWrapper (energy, Nflux, parameter, spectrum, flux, 
+			  fluxError, init, GRATPROF_N_PARAMETERS, &gratprof);
+  return;
+}
+
+extern "C" void C_gratpr2
+(const Real* energy, int Nflux, const Real* parameter, int spectrum, 
+ Real* flux, Real* fluxError, const char* init)
+{
+  isisCPPFunctionWrapper (energy, Nflux, parameter, spectrum, flux, 
+			  fluxError, init, GRATPR2_N_PARAMETERS, &gratpr2);
+  return;
+}
 
 void gratprofProcessParameter 
 (const RealArray& parameter, Real& LineEnergy, Real& Sigma, Real& Gamma, 

@@ -43,7 +43,7 @@ extern "C" void hgauss
  /*@unused@*/ int spectrum, RealArray& flux, /*@unused@*/ RealArray& fluxError,
  /*@unused@*/ const string& init);
 
-extern "C" void hgaussisis
+extern "C" void C_hgauss
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init);
 
@@ -52,7 +52,7 @@ extern "C" void hcgauss
  /*@unused@*/ int spectrum, RealArray& flux, /*@unused@*/ RealArray& fluxError,
  /*@unused@*/ const string& init);
 
-extern "C" void hcgaussisis
+extern "C" void C_hcgauss
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init);
 
@@ -61,7 +61,7 @@ extern "C" void hegauss
  /*@unused@*/ int spectrum, RealArray& flux, /*@unused@*/ RealArray& fluxError,
  /*@unused@*/ const string& init);
 
-extern "C" void hegaussisis
+extern "C" void C_hegauss
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init);
 
@@ -70,7 +70,7 @@ extern "C" void hecgauss
  /*@unused@*/ int spectrum, RealArray& flux, /*@unused@*/ RealArray& fluxError,
  /*@unused@*/ const string& init);
 
-extern "C" void hecgaussisis
+extern "C" void C_hecgauss
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init);
 
@@ -79,7 +79,7 @@ extern "C" void vwgauss
  /*@unused@*/ int spectrum, RealArray& flux, /*@unused@*/ RealArray& fluxError,
  /*@unused@*/ const string& init);
 
-extern "C" void vwgaussisis
+extern "C" void C_vwgauss
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init);
 
@@ -88,7 +88,7 @@ extern "C" void vwcgauss
  /*@unused@*/ int spectrum, RealArray& flux, /*@unused@*/ RealArray& fluxError,
  /*@unused@*/ const string& init);
 
-extern "C" void vwcgaussisis
+extern "C" void C_vwcgauss
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init);
 
@@ -97,7 +97,7 @@ extern "C" void wgauss
  /*@unused@*/ int spectrum, RealArray& flux, /*@unused@*/ RealArray& fluxError,
  /*@unused@*/ const string& init);
 
-extern "C" void wgaussisis
+extern "C" void C_wgauss
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init);
 
@@ -216,7 +216,7 @@ void wgauss
 
 /*----------------Calls to isis C-C++ wrapper function--------------*/
 
-void wgaussisis
+void C_wgauss
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init)
 {
@@ -226,7 +226,7 @@ void wgaussisis
   return;
 }
 
-void vwgaussisis
+void C_vwgauss
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init)
 {
@@ -236,7 +236,7 @@ void vwgaussisis
   return;
 }
 
-void vwcgaussisis
+void C_vwcgauss
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init)
 {
@@ -246,17 +246,17 @@ void vwcgaussisis
   return;
 }
 
-void hgaussisis
+void C_hgauss
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init)
 {
   isisCPPFunctionWrapper (energy, Nflux, parameter, spectrum, flux,
-			  fluxError, init, HGAUSS_N_PARAMETERS,
-			  &hgauss);
+  			  fluxError, init, HGAUSS_N_PARAMETERS,
+  			  &hgauss);
   return;
 }
 
-void hcgaussisis
+void C_hcgauss
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init)
 {
@@ -266,7 +266,7 @@ void hcgaussisis
   return;
 }
 
-void hegaussisis
+void C_hegauss
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init)
 {
@@ -276,7 +276,7 @@ void hegaussisis
   return;
 }
 
-void hecgaussisis
+void C_hecgauss
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init)
 {

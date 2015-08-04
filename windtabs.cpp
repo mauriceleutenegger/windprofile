@@ -44,7 +44,7 @@ extern "C" void windtabs
    /*@unused@*/ RealArray& fluxError,
    /*@unused@*/ const string& init);
 
-extern "C" void windtabsisis
+extern "C" void C_windtabs
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
    Real* flux, Real* fluxError, const char* init);
 
@@ -164,7 +164,7 @@ void windtab2 (const RealArray& energy, RealArray& flux, Real rhoRstar)
   return;
 }
 
-void windtabsisis
+void C_windtabs
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init)
 {

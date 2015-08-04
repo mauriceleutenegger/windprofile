@@ -65,6 +65,11 @@ Real HeLikeRatio::getHeLikeFactor (Real u)
   // x (important for high Z) is not currently supported - 060807 MAL
 }
 
+Real HeLikeRatio::getR0 ()
+{
+  return itsR0;
+}
+
 Real HeLikeRatio::getR (Real u)
 {
   Real dilution = 1. - sqrt (1. - u * u); // actually dilution is twice this

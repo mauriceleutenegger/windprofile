@@ -34,6 +34,7 @@ class HeLikeRatio
   void setParameters (Real R0, Real P, HeLikeType type);
   void setHeLikeType (HeLikeType type) {itsType = type; return;}
   Real getHeLikeFactor (Real u);
+  Real getR0 ();
  private:
   Real itsR0; // ratio with no photoexcitation
   Real itsP; // phi_* / phi_c

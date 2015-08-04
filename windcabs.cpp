@@ -3,17 +3,23 @@
 #include "AngleAveragedTransmission.h"
 #include "OpticalDepth.h"
 #include "Utilities.h"
+#include "isisCPPFunctionWrapper.h"
 #include <gsl/gsl_const_cgsm.h>
 #include "LoadWindAbsorptionTables.h"
 
 static const Real CONST_HC_KEV_A = GSL_CONST_CGSM_PLANCKS_CONSTANT_H * 
     GSL_CONST_CGSM_SPEED_OF_LIGHT * 1.e5 / GSL_CONST_CGSM_ELECTRON_VOLT;
 
+static const size_t WINDCABS_N_PARAMETERS (5);
 
 extern "C" void windcabs
 (const RealArray& energy, const RealArray& parameter, 
  /*@unused@*/ int spectrum, RealArray& flux, /*@unused@*/ RealArray& fluxError,
  /*@unused@*/ const string& init);
+
+extern "C" void C_windcabs
+(const Real* energy, int Nflux, const Real* parameter, int spectrum, 
+ Real* flux, Real* fluxError, const char* init);
 
 void windcabs
 (const RealArray& energy, const RealArray& parameter, 
@@ -79,3 +85,11 @@ void windcabs
 
 }
 
+void C_windcabs
+(const Real* energy, int Nflux, const Real* parameter, int spectrum, 
+ Real* flux, Real* fluxError, const char* init)
+{
+  isisCPPFunctionWrapper (energy, Nflux, parameter, spectrum, flux, 
+			  fluxError, init, WINDCABS_N_PARAMETERS, &windcabs);
+  return;
+}
