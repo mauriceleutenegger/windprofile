@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# Make sure to initialize HEASOFT before running.
+
+cd $HEADAS/../Xspec/src/tools/initpackage
+
+hmake
+hmake install
