@@ -34,6 +34,7 @@
 using namespace std;
 
 static const size_t WINDTABS_N_PARAMETERS (1);
+static const size_t VWINDTAB_N_PARAMETERS (14);
 
 static const Real CONST_HC_KEV_A = GSL_CONST_CGSM_PLANCKS_CONSTANT_H * 
   GSL_CONST_CGSM_SPEED_OF_LIGHT * 1.e5 / GSL_CONST_CGSM_ELECTRON_VOLT;
@@ -48,9 +49,43 @@ extern "C" void C_windtabs
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
    Real* flux, Real* fluxError, const char* init);
 
+extern "C" void vwindtab
+(const RealArray& energy, const RealArray& parameter, 
+   /*@unused@*/ int spectrum, RealArray& flux, 
+   /*@unused@*/ RealArray& fluxError,
+   /*@unused@*/ const string& init);
+
+extern "C" void C_vwindtab
+(const Real* energy, int Nflux, const Real* parameter, int spectrum, 
+   Real* flux, Real* fluxError, const char* init);
+
 void windtab1 (const RealArray& energy, RealArray& flux, Real RhoRstar);
 void windtab2 (const RealArray& energy, RealArray& flux, Real RhoRstar);
+void windtab3 (const RealArray& energy, RealArray& flux, Real RhoRstar,\
+               RealArray abundances);
 
+void vwindtab (const RealArray& energy, const RealArray& parameter, 
+   /*@unused@*/ int spectrum, RealArray& flux, 
+   /*@unused@*/ RealArray& fluxError,
+   /*@unused@*/ const string& init) 
+{ 
+  // Initialize
+  
+  size_t energySize = energy.size ();
+  size_t fluxSize = energySize - 1;
+  fluxError.resize (0);
+  flux.resize (fluxSize);
+  size_t i = 0;
+  Real rhoRstar = parameter[i++];
+  size_t abundanceSize = 13;
+  RealArray abundances (abundanceSize);
+  for (size_t j=0; j<abundanceSize; j++) {
+    abundances[j] = parameter[i++];
+  }
+  windtab3 (energy, flux, rhoRstar, abundances);
+  return;
+}
+  
 void windtabs
 (const RealArray& energy, const RealArray& parameter, 
    /*@unused@*/ int spectrum, RealArray& flux, 
@@ -164,12 +199,54 @@ void windtab2 (const RealArray& energy, RealArray& flux, Real rhoRstar)
   return;
 }
 
+void windtab3 (const RealArray& energy, RealArray& flux, Real rhoRstar,
+               RealArray abundances)
+{
+  
+  // load kappa - 2D table by Z; weight by abundances
+
+  RealArray kappa;
+  RealArray kappaEnergy;
+  int status = LoadKappaZ (kappa, kappaEnergy, abundances);
+  if (status) {return;}
+
+  // load optical depth and transmission
+  // (this should be the same as for windtab1 -
+  // only the kappa loading is different
+  // for variable abundances)
+
+  RealArray TransmissionTauStar;
+  RealArray Transmission;
+  status = LoadTransmission (TransmissionTauStar, Transmission);
+  if (status) {return;}
+  size_t fluxSize = flux.size ();
+  for (size_t i = 0; i < fluxSize; i++) {
+    Real centerEnergy = (energy[i] + energy[i+1]) / 2.;
+    size_t j = BinarySearch (kappaEnergy, centerEnergy);
+    Real TauStar = rhoRstar * kappa[j];
+    size_t k = BinarySearch (TransmissionTauStar, TauStar);
+    flux[i] = Transmission[k];
+  }
+  return;
+
+}
+
+
 void C_windtabs
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init)
 {
   isisCPPFunctionWrapper (energy, Nflux, parameter, spectrum, flux, 
 			  fluxError, init, WINDTABS_N_PARAMETERS, &windtabs);
+  return;
+}
+
+void C_vwindtab
+(const Real* energy, int Nflux, const Real* parameter, int spectrum, 
+ Real* flux, Real* fluxError, const char* init)
+{
+  isisCPPFunctionWrapper (energy, Nflux, parameter, spectrum, flux, 
+			  fluxError, init, VWINDTAB_N_PARAMETERS, &vwindtab);
   return;
 }
 

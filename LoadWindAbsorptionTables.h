@@ -28,6 +28,8 @@
 int LoadKappa 
 (RealArray& kappa, RealArray& kappaWavelength, Real& mu, bool HeII = false);
 
+int LoadKappaZ (RealArray& kappa, RealArray& kappaEnergy, RealArray abundances);
+
 int LoadTransmission
 (RealArray& TransmissionTauStar, RealArray& Transmission);
 
