@@ -25,7 +25,8 @@
 //#include "Utilities.h"
 #include "LoadWindAbsorptionTables.h"
 #include "XspecUtilities.h"
-#include "xsFortran.h"
+//#include "xsFortran.h"
+#include "FunctionUtility.h"
 
 using namespace std;
 using namespace CCfits;
@@ -235,10 +236,10 @@ int getMassFractions (RealArray RelativeAbundances, RealArray& MassFractions)
 {
   size_t NElements (30);
   // should try to replace this with something better
-  char* ElementNames[] =
+  /*  char* ElementNames[] =
     {"H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne",
      "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca",
-     "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn"};
+     "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn"};*/
   RealArray AtomicNumber;
   RealArray AtomicMass;
   RealArray ExplicitRelativeAbundances (1., NElements);
@@ -267,7 +268,10 @@ int getMassFractions (RealArray RelativeAbundances, RealArray& MassFractions)
   MassFractions.resize (NElements, 0.);
   Real sum = 0.;
   for (size_t i=0; i<NElements; i++) {
-    MassFractions[i] = FGABND (ElementNames[i]) * AtomicMass[i] *
+    //    MassFractions[i] = FGABND (ElementNames[i]) * AtomicMass[i] *
+    //      ExplicitRelativeAbundances[i];
+    size_t Z = i + 1;
+    MassFractions[i] = FunctionUtility::getAbundance (Z) * AtomicMass[i] *
       ExplicitRelativeAbundances[i];
     sum += MassFractions[i];
   }
@@ -285,7 +289,8 @@ int fillAbundanceArray (RealArray& ExplicitRelativeAbundances,
                         RealArray RelativeAbundances)
 {
   size_t NElements (30);
-  // this may not work correctly???
+  /* This tells you which relative abundances are in the parameter
+     array. */
   bool whichAbundances[] =
     {false, true, false, false, false, true, true, true, false, true,
      false, true, true, true, false, true, false, true, false, true,
