@@ -63,6 +63,8 @@ void windtab1 (const RealArray& energy, RealArray& flux, Real RhoRstar);
 void windtab2 (const RealArray& energy, RealArray& flux, Real RhoRstar);
 void windtab3 (const RealArray& energy, RealArray& flux, Real RhoRstar,\
                RealArray abundances);
+void writeKappaZ (const RealArray& kappa, const RealArray& kappaEnergy,\
+                  const string& kappaOutFilename);
 
 void vwindtab (const RealArray& energy, const RealArray& parameter, 
    /*@unused@*/ int spectrum, RealArray& flux, 
@@ -210,6 +212,11 @@ void windtab3 (const RealArray& energy, RealArray& flux, Real rhoRstar,
   int status = LoadKappaZ (kappa, kappaEnergy, abundances);
   if (status) {return;}
 
+  // Write out a file with kappa, given the abundances.
+  string kappaOutFilename = getXspecVariable ("KAPPAZOUTFILE",\
+                                              "kappaZ.txt");
+  writeKappaZ (kappa, kappaEnergy, kappaOutFilename);
+  
   // load optical depth and transmission
   // (this should be the same as for windtab1 -
   // only the kappa loading is different
@@ -229,6 +236,23 @@ void windtab3 (const RealArray& energy, RealArray& flux, Real rhoRstar,
   }
   return;
 
+}
+
+// For now this writes to a text file
+void writeKappaZ (const RealArray& kappa, const RealArray& kappaEnergy,\
+                  const string& kappaOutFilename)
+{
+  ofstream fileHandle (kappaOutFilename);
+  if (fileHandle.is_open())
+    {
+      size_t n = kappa.size ();
+      for(int i = 0; i < n; i++){
+        fileHandle << kappaEnergy[i] << "\t" << kappa[i] << "\n";
+      }
+      fileHandle.close();
+    }
+  else cout << "Unable to open file";
+  return;
 }
 
 
