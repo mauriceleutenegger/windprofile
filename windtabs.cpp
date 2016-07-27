@@ -242,16 +242,16 @@ void windtab3 (const RealArray& energy, RealArray& flux, Real rhoRstar,
 void writeKappaZ (const RealArray& kappa, const RealArray& kappaEnergy,\
                   const string& kappaOutFilename)
 {
-  ofstream fileHandle (kappaOutFilename);
+  ofstream fileHandle (kappaOutFilename.c_str());
   if (fileHandle.is_open())
     {
       size_t n = kappa.size ();
-      for(int i = 0; i < n; i++){
+      for(size_t i = 0; i < n; i++){
         fileHandle << kappaEnergy[i] << "\t" << kappa[i] << "\n";
       }
       fileHandle.close();
     }
-  else cout << "Unable to open file";
+  else cout << "Unable to open file" << endl;
   return;
 }
 
