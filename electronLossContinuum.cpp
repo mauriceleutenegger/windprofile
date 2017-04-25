@@ -51,19 +51,37 @@ void electronLossContinuum::checkInput ()
 /* epsilon is the energy in the convolution integral */
 double electronLossContinuum::integrand (double epsilon) 
 {
+  /* Everything in this integrand should have units of 1/E. */
   double tail = 0.;
   if (compare (itsDeltaE, epsilon) == 1) {
+    /* itsELCTailRatio = ELCnorm / exptailnorm */
+    /* ELCnorm + exptailnorm = 1 */
+    /* itsELCTailRatio = (1 - exptailnorm) / exptailnorm */
+    /* itsELCTailRatio * exptailnorm = 1 - exptailnorm */
+    /* 1 = exptailnorm * (1 + itsELCTailRatio) */
+    double exptailnorm = 1. / (itsELCTailRatio  + 1.);
+    /* itsELCTailRatio = ELCnorm / (1 - ELCnorm) */
+    /* itsELCTailRatio (1 - ELCnorm) = ELCnorm */
+    /* itsELCTailRatio = ELCnorm (1 + itsELCtailRatio */
+    double ELCnorm = itsELCTailRatio * exptailnorm;
     tail = exp (-1. * (itsDeltaE - epsilon) / itsETau) / itsETau;
+    tail *= exptailnorm;
+    // I think that the above expression is normalized correctly
+    // but please check
     //    tail = exp (-1. * (itsDeltaE - epsilon) / itsETau);
     /* Add in a constant floor. */
     /* Needs to be in units of 1/E also! */
-    tail += itsELCTailRatio * itsE0;
+    //tail += itsELCTailRatio * itsE0;
+    // I think the above expr. is wrong
+    tail += ELCnorm / itsE0;
+    // and this is prob. right (but please check!)
 
     // binFraction is the width of the energy bin divided by the line energy
     // need to know energy bin width
     //    tail += itsNFlat;
     //    tail /= itsETau;
     // need to redo the normalization...
+
   }
   else
     return 0.;

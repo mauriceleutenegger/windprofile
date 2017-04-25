@@ -59,6 +59,16 @@ extern "C" void C_vwindtab
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
    Real* flux, Real* fluxError, const char* init);
 
+extern "C" void vvwindta
+(const RealArray& energy, const RealArray& parameter, 
+   /*@unused@*/ int spectrum, RealArray& flux, 
+   /*@unused@*/ RealArray& fluxError,
+   /*@unused@*/ const string& init);
+
+extern "C" void C_vvwindta
+(const Real* energy, int Nflux, const Real* parameter, int spectrum, 
+   Real* flux, Real* fluxError, const char* init);
+
 void windtab1 (const RealArray& energy, RealArray& flux, Real RhoRstar);
 void windtab2 (const RealArray& energy, RealArray& flux, Real RhoRstar);
 void windtab3 (const RealArray& energy, RealArray& flux, Real RhoRstar,\
@@ -66,7 +76,7 @@ void windtab3 (const RealArray& energy, RealArray& flux, Real RhoRstar,\
 void writeKappaZ (const RealArray& kappa, const RealArray& kappaEnergy,\
                   const string& kappaOutFilename);
 
-void vwindtab (const RealArray& energy, const RealArray& parameter, 
+void vvwindta (const RealArray& energy, const RealArray& parameter, 
    /*@unused@*/ int spectrum, RealArray& flux, 
    /*@unused@*/ RealArray& fluxError,
    /*@unused@*/ const string& init) 
@@ -79,12 +89,41 @@ void vwindtab (const RealArray& energy, const RealArray& parameter,
   flux.resize (fluxSize);
   size_t i = 0;
   Real rhoRstar = parameter[i++];
-  size_t abundanceSize = 13;
+  size_t abundanceSize = 30;
   RealArray abundances (abundanceSize);
   for (size_t j=0; j<abundanceSize; j++) {
     abundances[j] = parameter[i++];
   }
   windtab3 (energy, flux, rhoRstar, abundances);
+  return;
+}
+
+/* This model just fills out all implicit abundances and passes
+   them through to vvwindta. */
+void vwindtab (const RealArray& energy, const RealArray& parameter, 
+   /*@unused@*/ int spectrum, RealArray& flux, 
+   /*@unused@*/ RealArray& fluxError,
+   /*@unused@*/ const string& init) 
+{ 
+  // Convert parameter to vvwindta format
+  size_t newParameterSize = 31;
+  RealArray newParameter (newParameterSize);
+  /* This tells you which relative abundances are in the parameter
+     array. Note that element 0 is set to True to pass Sigma*. */
+  bool whichAbundances[] =
+    {true,
+     false, true, false, false, false, true, true, true, false, true,
+     false, true, true, true, false, true, false, true, false, true,
+     false, false, false, false, false, true, false, true, false, false};
+  size_t j (0);
+  for (size_t i=1; i<newParameterSize; i++) {
+    if (whichAbundances[i]) {
+      newParameter[i] = parameter[j++];
+    } else {
+      newParameter[i] = 1.;
+    }
+  }
+  vvwindta (energy, newParameter, spectrum, flux, fluxError, init);
   return;
 }
   

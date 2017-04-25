@@ -242,8 +242,10 @@ int getMassFractions (RealArray RelativeAbundances, RealArray& MassFractions)
      "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn"};*/
   RealArray AtomicNumber;
   RealArray AtomicMass;
-  RealArray ExplicitRelativeAbundances (1., NElements);
-  fillAbundanceArray (ExplicitRelativeAbundances, RelativeAbundances);
+  // *** Note that relative abundances are now explicit
+  //RealArray ExplicitRelativeAbundances (1., NElements);
+  // fillAbundanceArray (ExplicitRelativeAbundances, RelativeAbundances);
+  // ********************
   // Get data directory from XSPEC xset variables
   string windtabsDirectory = getXspecVariable ("WINDTABSDIRECTORY", "./");
   // Get filename from XSPEC xset variables  
@@ -272,7 +274,8 @@ int getMassFractions (RealArray RelativeAbundances, RealArray& MassFractions)
     //      ExplicitRelativeAbundances[i];
     size_t Z = i + 1;
     MassFractions[i] = FunctionUtility::getAbundance (Z) * AtomicMass[i] *
-      ExplicitRelativeAbundances[i];
+      RelativeAbundances[i];
+    //      ExplicitRelativeAbundances[i];
     sum += MassFractions[i];
   }
   // renormalize
@@ -285,12 +288,13 @@ int getMassFractions (RealArray RelativeAbundances, RealArray& MassFractions)
   return 0;
 }
 
+/*
 int fillAbundanceArray (RealArray& ExplicitRelativeAbundances,
                         RealArray RelativeAbundances)
 {
   size_t NElements (30);
-  /* This tells you which relative abundances are in the parameter
-     array. */
+  // This tells you which relative abundances are in the parameter
+   //  array.
   bool whichAbundances[] =
     {false, true, false, false, false, true, true, true, false, true,
      false, true, true, true, false, true, false, true, false, true,
@@ -304,3 +308,4 @@ int fillAbundanceArray (RealArray& ExplicitRelativeAbundances,
   }
   return 0;
 }
+*/

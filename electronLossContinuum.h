@@ -22,6 +22,13 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA */
 
+/*
+  This function is misnamed - it calculates the flux of both the 
+  electron loss continuum and also the exponential tail, and it convolves
+  them both with a Gaussian. The ratio of the two components is set by
+  elc_tail_ratio. 
+ */
+
 #ifndef ELECTRONLOSSCONTINUUM_H
 #define ELECTRONLOSSCONTINUUM_H
 

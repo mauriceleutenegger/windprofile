@@ -63,11 +63,13 @@ void sxslsf
     flux[j] = CLSF.getLSF (deltaE[j], deltaE[j+1]);
   }
   Real total = flux.sum ();
+  cout << "CLSF total:\t" << total << endl; 
   flux *= elc_tail_sum;
   Real sigmaC = sigmaKEV / e0KEV;
   Gaussian G (energy, e0KEV, sigmaC);
   RealArray gflux (fsize);
   G.getFlux (gflux);
+  cout << "gflux total:\t" << gflux.sum () << endl; 
   flux += gflux * (1. - ftail);
   return;
 }
