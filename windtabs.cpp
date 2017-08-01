@@ -116,7 +116,7 @@ void vwindtab (const RealArray& energy, const RealArray& parameter,
      false, true, true, true, false, true, false, true, false, true,
      false, false, false, false, false, true, false, true, false, false};
   size_t j (0);
-  for (size_t i=1; i<newParameterSize; i++) {
+  for (size_t i=0; i<newParameterSize; i++) { 
     if (whichAbundances[i]) {
       newParameter[i] = parameter[j++];
     } else {
@@ -264,7 +264,10 @@ void windtab3 (const RealArray& energy, RealArray& flux, Real rhoRstar,
   RealArray TransmissionTauStar;
   RealArray Transmission;
   status = LoadTransmission (TransmissionTauStar, Transmission);
-  if (status) {return;}
+  if (status) {
+    cerr << "windtab3: Failed to load transmission file." << endl;
+    return;
+  }
   size_t fluxSize = flux.size ();
   for (size_t i = 0; i < fluxSize; i++) {
     Real centerEnergy = (energy[i] + energy[i+1]) / 2.;

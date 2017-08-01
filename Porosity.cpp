@@ -28,18 +28,20 @@
 using namespace std;
 
 Porosity::Porosity 
-(Real TauClump0, bool Anisotropic, bool Rosseland)
-  : itsTauClump0 (TauClump0), isAnisotropic (Anisotropic), 
+(Real TauClump0, bool Anisotropic, bool Prolate, bool Rosseland)
+  : itsTauClump0 (TauClump0), isAnisotropic (Anisotropic),
+    isProlate (Prolate),
     isRosseland (Rosseland), isPorous (false)
 {
   checkInput ();
 }
 
 void Porosity::setParameters 
-(Real TauClump0, bool Anisotropic, bool Rosseland) 
+(Real TauClump0, bool Anisotropic, bool Prolate, bool Rosseland) 
 {
   itsTauClump0 = TauClump0;
   isAnisotropic = Anisotropic;
+  isProlate = Prolate;
   isRosseland = Rosseland; 
   isPorous = false;
   checkInput ();
@@ -63,7 +65,8 @@ void Porosity::checkInput ()
     isPorous = false; return; break;
   default:
     cerr << "Porosity: TauClump = " << itsTauClump0 << "; setting to 0.\n";
-    itsTauClump0 = 0.; isPorous = false; isAnisotropic = false; 
+    itsTauClump0 = 0.; isPorous = false; isAnisotropic = false;
+    isProlate = false;
     isRosseland = false; return; break;
   }
   return;
@@ -79,17 +82,27 @@ Real Porosity::getPorosityFactor (Real u, Real mu)
   mu = fabs (mu);
   if (!isPorous) return 1.;
   Real TauClump = getTauClump (u); // isotropic clump optical depth
-  if (isRosseland) {
+  if (isRosseland) { // Rosseland bridging - appropriate for clump size dist.
     if (isAnisotropic) {
-      return (mu / (mu + TauClump));
-    } else { //istropic
+      if (isProlate) { // Cigar
+	Real nu = sqrt (1. - mu * mu); // Not sure if there is overflow danger 
+	return (nu / (nu + TauClump));
+      }
+      return (mu / (mu + TauClump)); // Pancake
+    } else { //isotropic
       return (1. / (1. + TauClump));
     }
-  } else { //regular bridging
+  } else { //regular bridging (exponential, single clump)
     if (isAnisotropic) {
-      // in case mu is small:
-      if (compare (mu / TauClump, 1.e-10) != 1) return (mu / TauClump);
-      TauClump /= mu;
+      if (isProlate) { // Cigar
+	Real nu = sqrt (1. - mu * mu); 
+	TauClump /= nu;
+      }
+      else { // Pancake
+	// in case mu is small:
+	if (compare (mu / TauClump, 1.e-10) != 1) return (mu / TauClump);
+	TauClump /= mu;
+      }
     } 
     return gsl_sf_exprel (-1. * TauClump); // (1 - e^-t) / t
   }

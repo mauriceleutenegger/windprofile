@@ -30,14 +30,17 @@
 class Porosity {
  public:
   Porosity 
-    (Real TauClump0 = 0., bool Anisotropic = false, bool Rosseland = false);
-  void setParameters (Real TauClump0, bool Anisotropic, bool Rosseland);
+    (Real TauClump0 = 0., bool Anisotropic = false,
+     bool Prolate = false, bool Rosseland = false);
+  void setParameters (Real TauClump0, bool Anisotropic,
+		      bool Prolate, bool Rosseland);
   void setParameters (Real TauClump0);
   Real getPorosityFactor (Real u, Real mu);
   bool getPorous () const {return isPorous;}
  private:
   Real itsTauClump0;
   bool isAnisotropic;
+  bool isProlate;
   bool isRosseland;
   bool isPorous;
   Real getTauClump (Real u);

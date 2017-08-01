@@ -42,7 +42,8 @@ WindParameter::WindParameter ()
     itsH (0.), itsTau0Star (0.), 
     itsBeta (1.), itsBetaSobolev (0.), itsKappaRatio (0.), itsR0 (1.), itsP (0.), 
     itsAtomicNumber (8),
-    itsModelType (general), isNumerical (false), isAnisotropic (false), 
+    itsModelType (general), isNumerical (false), isAnisotropic (false),
+    isProlate (false),
     isRosseland (false), isExpansion (false), isOpticallyThick (false),
     isHeII (false),
     itsWavelength (20.), itsShift (0.), itsVelocity (0.001), isVerbose (false),
@@ -56,7 +57,8 @@ WindParameter::WindParameter (const RealArray& parameter, ModelType type)
     itsH (0.), itsTau0Star (0.), 
     itsBeta (1.), itsBetaSobolev (0.), itsKappaRatio (0.), itsR0 (1.), itsP (0.), 
     itsAtomicNumber (8),
-    itsModelType (general), isNumerical (false), isAnisotropic (false), 
+    itsModelType (general), isNumerical (false), isAnisotropic (false),
+    isProlate (false),
     isRosseland (false), isExpansion (false), isOpticallyThick (false),
     isHeII (false),
     itsWavelength (20.), itsShift (0.), itsVelocity (0.001), isVerbose (false),
@@ -112,7 +114,18 @@ void WindParameter::setParameters
     isHeII = true;
   }
   isNumerical = bool (parameter [i++]);
-  isAnisotropic = bool (parameter [i++]);
+  int aniso_code = int (parameter [i++]);
+  if (aniso_code > 0) {
+    isAnisotropic = true;
+  } else {
+    isAnisotropic = false;
+  }
+  if (aniso_code == 2) {
+    isProlate = true;
+  } else {
+    isProlate = false;
+  }
+  //isAnisotropic = bool (parameter [i++]);
   isRosseland = bool (parameter [i++]);
   isExpansion = bool (parameter [i++]);
   isOpticallyThick = bool (parameter [i++]);
@@ -357,7 +370,7 @@ void WindParameter::initializeVelocity (Velocity*& V)
 void WindParameter::initializePorosity (Porosity*& P)
 {
   Real TauClump = itsTauStar * itsH;
-  P = new Porosity (TauClump, isAnisotropic, isRosseland);
+  P = new Porosity (TauClump, isAnisotropic, isProlate, isRosseland);
   return;
 }
 
@@ -367,10 +380,12 @@ void WindParameter::initializeOpticalDepth (OpticalDepth*& Tau,
   /* Will allocate both regular and HeII optical depths, if (isHeII). */
   if (isHeII) {
     TauHeII = new OpticalDepth (itsTauStar, itsH, itsBeta, true, 
-				isAnisotropic, isRosseland, isExpansion, true);
+				isAnisotropic, isProlate,
+				isRosseland, isExpansion, true);
   }
   Tau = new OpticalDepth (itsTauStar, itsH, itsBeta, isNumerical, 
-			  isAnisotropic, isRosseland, isExpansion, false);
+			  isAnisotropic, isProlate,
+			  isRosseland, isExpansion, false);
   return;
 }
 

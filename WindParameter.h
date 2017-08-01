@@ -87,6 +87,7 @@ class WindParameter
   ModelType itsModelType;
   bool isNumerical;
   bool isAnisotropic;
+  bool isProlate;
   bool isRosseland;
   bool isExpansion;
   bool isOpticallyThick;

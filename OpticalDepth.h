@@ -50,7 +50,8 @@ class OpticalDepth {
     bool anisotropic = false, bool rosseland = false, bool expansion = false);*/
   OpticalDepth 
     (Real TauStar = 0., Real h = 0., Real beta = 1., bool numerical = false,
-     bool anisotropic = false, bool rosseland = false, bool expansion = false, 
+     bool anisotropic = false, bool prolate = false,
+     bool rosseland = false, bool expansion = false, 
      bool HeII = false);
   ~OpticalDepth ();
   Real getOpticalDepth (Real p, Real z);
@@ -66,7 +67,7 @@ class OpticalDepth {
   // allocators and deallocators
   void allocateVelocity (Real beta);
   void allocatePorosity 
-    (Real TauStar, Real h, bool anisotropic, bool rosseland);
+    (Real TauStar, Real h, bool anisotropic, bool prolate, bool rosseland);
   void allocateNumericalOpticalDepth (Real TauStar);
   void allocateAnalyticOpticalDepth 
     (Real TauStar, Real h, bool anisotropic, bool expansion);
