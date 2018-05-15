@@ -24,7 +24,7 @@ def configuration (parent_package='', top_path=None):
                '../HeLikeRatio.cpp',\
                '../mal_RootFinderNewton.cpp',\
                '../UxRoot.cpp']
-    libraryNames = ['gsl',]
+    libraryNames = ['gsl','gslcblas']
     config.add_extension ('PyWindProfile', 
                           sources = sourceFiles, 
                           library_dirs = ['/opt/local/lib/'],
@@ -42,4 +42,5 @@ if __name__ == "__main__":
            author_email='NA',
            description=description_string,
            version = '0.1',
+           packages=['PyWindProfile'],
            **config)

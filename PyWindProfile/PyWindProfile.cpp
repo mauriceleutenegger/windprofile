@@ -159,6 +159,7 @@ static PyObject* Py_Lx (PyObject* obj, PyObject* args)
   bool isOpticallyThick = false;
   bool isNumerical = false;
   bool isAnisotropic = false;
+  bool isProlate = false;
   bool isRosseland = false;
   bool isExpansion = false;
   bool isHeII = false;
@@ -184,7 +185,18 @@ static PyObject* Py_Lx (PyObject* obj, PyObject* args)
 
   isOpticallyThick = (bool) thick;
   isNumerical = (bool) num;
-  isAnisotropic = (bool) aniso;
+  if (aniso == 0) {
+    isAnisotropic = false;
+    isProlate = false;
+  } else if (aniso == 1) {
+    isAnisotropic = true;
+    isProlate = false;
+  } else if (aniso == 2) {
+    isAnisotropic = true;
+    isProlate = true;
+  } else {
+    cerr << "PyWindProfile.cpp: got unexpected value for aniso:\t" << aniso << endl;
+  }
   isRosseland = (bool) ross;
   isExpansion = (bool) exp;
   isHeII = (bool) HeII;
@@ -211,10 +223,10 @@ static PyObject* Py_Lx (PyObject* obj, PyObject* args)
     He = new HeLikeRatio (); // default case is harmless
     RS = new ResonanceScattering (Tau0Star, betaSobolev, isOpticallyThick, V);
     Tau = new OpticalDepth 
-      (TauStar, h, beta, isNumerical, isAnisotropic, isRosseland, isExpansion, false);
+      (TauStar, h, beta, isNumerical, isAnisotropic, isProlate, isRosseland, isExpansion, false);
     if (isHeII) {
       TauHeII = new OpticalDepth 
-	(TauStar, h, beta, true , isAnisotropic, isRosseland, isExpansion, true);
+        (TauStar, h, beta, true , isAnisotropic, isProlate, isRosseland, isExpansion, true);
       // Note that TauHeII needs to have numerical set to true to work properly.
       lx = new Lx (q, U0, Umin, beta, kappaRatio, wResonance, V, He, RS, Tau, TauHeII);
     } else {

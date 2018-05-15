@@ -9,9 +9,10 @@ This will compile and install the module.
 The scripts testLx.py and testOpticalDepth.py give an idea of how to invoke the functions.
 They are:
 
-PyWindProfile.Lx (x, q, U0, beta, TauStar, h, Tau0Star, betaSobolev,\
-         isOpticallyThick, isNumerical, isAnisotropic, isRosseland,\
-         isExpansion)
+PyWindProfile.Lx (x, q, U0, Umin, beta, TauStar, h,
+                 Tau0Star, betaSobolev, kappaRatio, \
+                 isOpticallyThick, isNumerical, isAnisotropic, isRosseland,\
+                 isExpansion, isHeII)
 where x is an array of double to calculate Lx on, 
 the next seven parameters are double, and the last five are (bool) int.
 
@@ -34,3 +35,10 @@ pylab (if you want to make test plots)
 
 I have tested this on EPD 7.3.1: Python 2.7.3; numpy 1.6.1. 
 ML Oct 2012.
+
+Updated documentation to reflect evolution of package.
+Current configuation:
+conda 4.5.3
+python 2.7.14
+numpy 1.14.3
+ML May 2018
