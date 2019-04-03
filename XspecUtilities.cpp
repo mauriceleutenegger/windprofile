@@ -23,7 +23,8 @@
 
 
 #include "XspecUtilities.h"
-#include <XSUtil/FunctionUtils/FunctionUtility.h>
+//#include <XSUtil/FunctionUtils/FunctionUtility.h>
+#include <FunctionUtility.h>
 
 using namespace std;
 
