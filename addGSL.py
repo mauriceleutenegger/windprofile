@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
+from __future__ import print_function # for python 2 backwards compatibility
 import os
 import sys
 import platform
 import re
+
 
 def check_if_GSL_exists (gsl_dir) :
     if platform.system () == 'Darwin' :
@@ -21,7 +23,7 @@ def getGSLdir (user_gsl_dir="") :
         if os.path.exists (user_gsl_dir) :
             gsl_dirs.insert (0, user_gsl_dir)
         else :
-            print "User supplied GSL location %s does not exist." % user_gsl_dir
+            print ("User supplied GSL location {} does not exist.".format (user_gsl_dir))
     for gsl_dir in gsl_dirs :
         if check_if_GSL_exists (gsl_dir) :
             return gsl_dir
@@ -34,8 +36,7 @@ def getHEASOFTdir (user_HEASOFT_dir="") :
         if os.path.exists (user_HEASOFT_dir) :
             HEASOFT_dirs.insert (0, user_HEASOFT_dir)
         else :
-            print "User supplied HEASOFT location %s does not exist."\
-                % user_HEASOFT_dir
+            print ("User supplied HEASOFT location {} does not exist.".format (user_HEASOFT_dir))
     initfile = 'headas-init.sh'
     HEADAS = ""
     try : 
@@ -67,9 +68,9 @@ def addGSL (gsldir, heasoftdir, platform_system) :
     # first test if it's been run yet
     for line in lines :
         if re.search ('gsl', line) :
-            print "Detected previously modified Makefile template:"
-            print fn
-            print "Refusing to modify again."
+            print ("Detected previously modified Makefile template:")
+            print (fn)
+            print ("Refusing to modify again.")
             return
     g = open (tempfile, 'w')
     i = 0
@@ -112,7 +113,7 @@ def main () :
                   + "This script will attempt to detect the GSL and HEASOFT "\
                   + "directories,\n\tor they can be supplied by the user.\n\t" \
                   + "The HEASOFT directory is checked in this order:\n\t"\
-                  + "1. User supplied\n\t2. Current working directory (this"\
+                  + "1. User supplied\n\t2. Current working directory (this "\
                   + "also works for BUILD_DIR)\n\t3. $HEADAS"
     
     parser = argparse.ArgumentParser\
@@ -127,10 +128,10 @@ def main () :
     platform_system = platform.system ()
     recognized_platforms = ['Darwin', 'Linux'] 
     if not platform_system in recognized_platforms :
-        print "Platform/system %s not recognized" % platform_system
-        print "This script is written for the following platforms:"
+        print ("Platform/system {} not recognized".format (platform_system))
+        print ("This script is written for the following platforms:")
         for p in recognized_platforms :
-            print p
+            print (p)
         sys.exit (2)
     addGSL (gsldir, heasoftdir, platform_system)
     return
