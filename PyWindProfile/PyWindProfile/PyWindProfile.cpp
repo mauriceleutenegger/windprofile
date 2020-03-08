@@ -20,11 +20,14 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA */
 
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+// disallow deprecated numpy methods
+
 #include "Python.h"
 #include "numpy/arrayobject.h"
 #include "xsTypes.h"
-#include "../OpticalDepth.h"
-#include "../Lx.h"
+#include "../../OpticalDepth.h"
+#include "../../Lx.h"
 
 static PyObject* Py_OpticalDepth (PyObject* obj, PyObject* args)
 {
@@ -58,19 +61,25 @@ static PyObject* Py_OpticalDepth (PyObject* obj, PyObject* args)
 
 static PyObject* Py_OpticalDepth2d (PyObject* obj, PyObject* args)
 {
-  PyObject *oP, *oZ;
+  PyObject *oP = NULL, *oZ = NULL;
   PyArrayObject *p = NULL, *z = NULL, *tau = NULL;
   Real Taustar = 0.;
   Real h = 0.;
   Real beta = 1.;
+  Real tempt = 0.;
+  Real tempp = 0.;
+  Real tempz = 0.;
   int numerical = 0;
   int anisotropic = 0;
   int rosseland = 0;
   int  expansion = 0;
   int HeII = 0;
-  int tsize[2] = {0, 0};
-  size_t psize = 0;
-  size_t zsize = 0;
+  npy_intp tdims[2] = {0, 0};
+  npy_intp psize = 0;
+  npy_intp zsize = 0;
+  // set up descriptor for array allocation
+  PyArray_Descr *tau_descriptor = PyArray_DescrFromType(NPY_FLOAT64);
+    
   // THERE IS PROABABLY A BUG HERE
   if (!PyArg_ParseTuple (args, "OOdddiiiii", &oP, &oZ, &Taustar, &h, &beta, 
 			 &numerical, &anisotropic, &rosseland, &expansion, &HeII)) {
@@ -78,55 +87,64 @@ static PyObject* Py_OpticalDepth2d (PyObject* obj, PyObject* args)
 		     "OpticalDepth: Invalid number of parameters.");
     goto _fail;
   }
-
   // make array objects from python numpy arrays
   p = (PyArrayObject*) PyArray_ContiguousFromAny
     (oP, NPY_FLOAT64, 1, 1);
+  if (!p) {
+    PyErr_SetString (PyExc_ValueError,
+                     "Py_OpticalDepth2d: Failed to allocate p array.");
+    goto _fail;
+  }
   z = (PyArrayObject*) PyArray_ContiguousFromAny
     (oZ, NPY_FLOAT64, 1, 1);
-  if (!p || ! z ) goto _fail;
+  if (!z) {
+    PyErr_SetString (PyExc_ValueError,
+                     "Py_OpticalDepth2d: Failed to allocate z array.");
+    goto _fail;
+  }
 
-  // make a 2-dimensional array for tau
-
-  psize = p->dimensions[0];
-  zsize = z->dimensions[0];
-  tsize[0] = psize;
-  tsize[1] = zsize;
-  tau = (PyArrayObject*) PyArray_FromDims (2, tsize, NPY_FLOAT64);
-  if (!tau) goto _fail;
+  // get and set array dimensions
+  psize = PyArray_DIM (p, 0);
+  zsize = PyArray_DIM (z, 0);
+  tdims[0] = psize;
+  tdims[1] = zsize;
+  // make a 2-dimensional array for tau, initialized to zeros
+  tau = (PyArrayObject*) PyArray_Zeros
+    (2, tdims, tau_descriptor, 0);
+  if (!tau) {
+    PyErr_SetString (PyExc_ValueError,
+                     "Py_OpticalDepth2d: Failed to allocate tau array.");
+    goto _fail;
+  }
 
   { // braces ensure that this stuff never goes out of scope due to goto !
-
-    /* The following code is supposed to give us a way to put elements of
-     a Real[][] into a 2d array stored as a numpy object*/
-    PyObject ** op = (PyObject**) &tau; // pointer to tau
-    double **result; 
-    int nrows, ncols;
-    int datatype = NPY_FLOAT64;
-    PyArray_As2D (op, (char ***) &result, &nrows, &ncols, datatype);
     
     /* declare OpticalDepth object with parameters */
     OpticalDepth TAU (Taustar, h, beta, (bool) numerical, (bool) anisotropic,
 		      (bool) rosseland, (bool) expansion, (bool) HeII);  
 
     /* calculate tau on p,z grid */
-    Real* parray = (npy_float64*) p->data;
-    Real* zarray = (npy_float64*) z->data;
-    for (size_t i = 0; i < psize; i++) {
-      for (size_t j = 0; j < zsize; j++) {
-	Real temp = TAU.getOpticalDepth (parray[i],zarray[j]);
-	result[i][j] = temp;
+    /*
+      Here we use GETPTR1 to return a void* pointer to the array at element i;
+      this must then be cast to npy_float64* so we know the type;
+      and then the whole thing must be dereferenced to get the actual value.
+      For the 2D array tau, we use GETPTR2 in the same way.
+    */
+    for (npy_intp i = 0; i < psize; i++) {
+      for (npy_intp j = 0; j < zsize; j++) {
+        tempp = *((npy_float64*) PyArray_GETPTR1 (p, i));
+        tempz = *((npy_float64*) PyArray_GETPTR1 (z, j));
+        tempt = TAU.getOpticalDepth (tempp, tempz);
+        *((npy_float64*) PyArray_GETPTR2 (tau, i, j)) = tempt;
       }
     }
-    // should probably free memory, but this function seems to crash
-    //    PyArray_Free (*op, (char *) *result); //get rid of the 2d baggage
   } // end brace protection
-
   /* clean up */
-  Py_DECREF (z);
-  Py_DECREF (p);
+  Py_XDECREF (z);
+  Py_XDECREF (p);
   return PyArray_Return (tau);
  _fail:
+  cout << "optical depth failing\n" << flush;
   Py_XDECREF (z);
   Py_XDECREF (p);
   Py_XDECREF (tau);
@@ -171,7 +189,8 @@ static PyObject* Py_Lx (PyObject* obj, PyObject* args)
   int ross = 0;
   int exp = 0;
   int HeII = 0;
-  size_t xsize = 0;
+  npy_intp xsize = 0;
+  PyArray_Descr *flux_descriptor = PyArray_DescrFromType(NPY_FLOAT64);
   // get arguments from python
   if (!PyArg_ParseTuple 
       (args, "Odddddddddiiiiii", &oX, &q, &U0, &Umin, &beta, &TauStar, &h, 
@@ -179,10 +198,9 @@ static PyObject* Py_Lx (PyObject* obj, PyObject* args)
        &thick, &num, &aniso, 
        &ross, &exp, &HeII)) {
     PyErr_SetString (PyExc_ValueError, 
-		     "Lx: Invalid number of parameters.");
+                     "Lx: Invalid number of parameters.");
     goto _fail;
   }
-
   isOpticallyThick = (bool) thick;
   isNumerical = (bool) num;
   if (aniso == 0) {
@@ -195,29 +213,36 @@ static PyObject* Py_Lx (PyObject* obj, PyObject* args)
     isAnisotropic = true;
     isProlate = true;
   } else {
-    cerr << "PyWindProfile.cpp: got unexpected value for aniso:\t" << aniso << endl;
+    cerr << "Lx: got unexpected value for aniso:\t" << aniso << endl;
   }
   isRosseland = (bool) ross;
   isExpansion = (bool) exp;
   isHeII = (bool) HeII;
 
- // make array object from python numpy array
+  // make array object from python numpy array
   x = (PyArrayObject*) PyArray_ContiguousFromAny
     (oX, NPY_FLOAT64, 1, 1);
-  if (!x) goto _fail; 
-  xsize = x->dimensions[0];
+
+  if (!x) {
+    PyErr_SetString (PyExc_ValueError,
+                     "Lx: Failed to allocate x array.");
+    goto _fail;
+  }
+  xsize = PyArray_DIM (x, 0);
 
   // and make a flux array object with same size as x
-  flux = (PyArrayObject*) PyArray_FromDims
-    (1, (int*) &xsize, NPY_FLOAT64);
-  if (!flux) goto _fail; 
+  flux = (PyArrayObject*) PyArray_Zeros
+    (1, &xsize, flux_descriptor, 0);
+  //flux = (PyArrayObject*) PyArray_SimpleNew
+  //  (1, (long const *) &xsize, NPY_FLOAT64);
+  if (!flux) {
+    PyErr_SetString (PyExc_ValueError,
+                     "Lx: Failed to allocate flux array.");
+    goto _fail;
+  }
 
   // for your protection
-  {
-  Real* xarray = (npy_float64*) x->data;
-  Real* fluxarray = (npy_float64*) flux->data;
-
-   // braces protect the objects from goto
+  {    // braces protect the objects from goto
     // instantiate Lx and other objects
     V = new Velocity (beta);
     He = new HeLikeRatio (); // default case is harmless
@@ -233,8 +258,14 @@ static PyObject* Py_Lx (PyObject* obj, PyObject* args)
       lx = new Lx (q, U0, Umin, beta, wResonance, V, He, RS, Tau);
     }
     // calculate flux
-    for (size_t i = 0; i < xsize; i++) {
-      fluxarray[i] = lx->getLx (xarray[i]);
+    /*
+      Here we use GETPTR1 to return a void* pointer to the array at element i;
+      this must then be cast to npy_float64* so we know the type;
+      and then the whole thing must be dereferenced to get the actual value.
+    */
+    for (npy_intp i = 0; i < xsize; i++) {
+      *((npy_float64*) PyArray_GETPTR1 (flux, i)) =
+        lx->getLx (*((npy_float64*) PyArray_GETPTR1 (x, i)));
     }
     delete lx;
     delete Tau;
@@ -245,7 +276,6 @@ static PyObject* Py_Lx (PyObject* obj, PyObject* args)
     delete He;
     delete V;
   } // end protect braces
-
   Py_DECREF (x);
   return PyArray_Return (flux);
  _fail:
@@ -261,8 +291,36 @@ static PyMethodDef PyWindProfileMethods[] = {
   {NULL, NULL, 0, NULL} /* Sentinel */
 };
 
+#if PY_MAJOR_VERSION >= 3
+/*
+  This structure defines the module, and makes use of the methods structure.
+ */
+static struct PyModuleDef PyWindProfileDef =
+{
+    PyModuleDef_HEAD_INIT,
+    "PyWindProfile", /* name of module */
+    "",          /* module documentation, may be NULL */
+    -1,          /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
+    PyWindProfileMethods
+};
 
+/*
+  This function creates the module using the module structure.
+ */
+PyMODINIT_FUNC PyInit_PyWindProfile(void)
+{
+  PyObject *module;
+  module = PyModule_Create(&PyWindProfileDef);
+  if(module==NULL) return NULL;
+  /* IMPORTANT: this must be called */
+  import_array();
+  if (PyErr_Occurred()) return NULL;
+  return module;
+}
+#else
+// This is the py2.7 way
 PyMODINIT_FUNC initPyWindProfile (void)
 {
   import_array () (void) Py_InitModule ("PyWindProfile",PyWindProfileMethods);
 }
+#endif

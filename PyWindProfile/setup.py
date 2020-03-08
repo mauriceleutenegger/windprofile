@@ -2,11 +2,7 @@
 
 import numpy
 
-def configuration (parent_package='', top_path=None):
-    from numpy.distutils.misc_util import Configuration
-    config = Configuration ('PyWindProfile', parent_package, top_path)
-    sourceFiles\
-        = ['PyWindProfile.cpp',\
+sourceFileList = ['PyWindProfile/PyWindProfile.cpp',\
                '../Gaussian.cpp',\
                '../Utilities.cpp',\
                '../OpticalDepth.cpp',\
@@ -24,13 +20,20 @@ def configuration (parent_package='', top_path=None):
                '../HeLikeRatio.cpp',\
                '../mal_RootFinderNewton.cpp',\
                '../UxRoot.cpp']
-    libraryNames = ['gsl','gslcblas']
+
+libraryDirList = ['/opt/local/lib/']
+libraryNameList = ['gsl','gslcblas']
+includeDirList = [numpy.get_include (), '/opt/local/include/', 'PyWindProfile']
+
+
+def configuration (parent_package='', top_path=None):
+    from numpy.distutils.misc_util import Configuration
+    config = Configuration ('PyWindProfile', parent_package, top_path)
     config.add_extension ('PyWindProfile', 
-                          sources = sourceFiles, 
-                          library_dirs = ['/opt/local/lib/'],
-                          libraries = libraryNames,
-#                          include_dirs = [numpy.get_include (),'/sw/include/','.'])
-                          include_dirs = [numpy.get_include (), '/opt/local/include/', '.'])
+                          sources = sourceFileList, 
+                          library_dirs = libraryDirList,
+                          libraries = libraryNameList,
+                          include_dirs = includeDirList)
     return config
 
 if __name__ == "__main__":
@@ -38,9 +41,13 @@ if __name__ == "__main__":
     config = configuration (top_path='').todict()
     description_string\
         = 'Provides functions based on XSPEC local model package windprofile'
-    setup (author='MAL',
-           author_email='NA',
+    setup (author='Maurice A Leutenegger',
+           author_email='maurice.a.leutenegger@nasa.gov',
            description=description_string,
            version = '0.1',
+           #name='PyWindProfile',
+           #packages=[''],
+           #package_dir={'': '.'},
+           #package_data={'': ['PyWindProfile']},
            packages=['PyWindProfile'],
            **config)
