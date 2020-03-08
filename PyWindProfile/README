@@ -1,9 +1,12 @@
 To build and install the python interface for windprofile:
 
+./setup.py install 
+#(should work for most situations) or
 ./setup.py install --prefix=/path/to/python/libs/
-or
+#or
 ./setup.py install --home=~
-(will install in ~/lib/python/)
+#(will install in ~/lib/python/)
+
 This will compile and install the module. 
 
 The scripts testLx.py and testOpticalDepth.py give an idea of how to invoke the functions.
@@ -42,3 +45,7 @@ conda 4.5.3
 python 2.7.14
 numpy 1.14.3
 ML May 2018
+
+Made major fixes to packaging, python 2.7/3.X compatibility.
+Also modernized and simplified C++-numpy interface calls.
+ML March 2020
