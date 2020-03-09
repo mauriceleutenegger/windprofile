@@ -25,18 +25,17 @@
 
 using namespace std;
 
-HeLikeRatio::HeLikeRatio (Real R0, Real P, HeLikeType type)
-  : itsR0 (R0), itsP (P), itsType (type)
+HeLikeRatio::HeLikeRatio (Real R0, Real P)
+  : itsR0 (R0), itsP (P)
 {
   checkInput ();
   return;
 }
 
-void HeLikeRatio::setParameters (Real R0, Real P, HeLikeType type)
+void HeLikeRatio::setParameters (Real R0, Real P)
 {
   itsR0 = R0; 
   itsP = P; 
-  itsType = type;
   checkInput();
   return;
 }
@@ -54,13 +53,13 @@ void HeLikeRatio::checkInput ()
   return;
 }
 
-Real HeLikeRatio::getHeLikeFactor (Real u)
+Real HeLikeRatio::getHeLikeFactor (Real u, HeLikeType type)
 {
-  if (itsType == wResonance) return 1.;
+  if (type == wResonance) return 1.;
   Real R = getR (u);
-  if (itsType == yIntercombination) return (1. / (1. + R));
-  if (itsType == zForbidden) return (R / (1. + R)); // forbidden
-  cerr << "HeLikeRatio: Error in type " << itsType << "\n";
+  if (type == yIntercombination) return (1. / (1. + R));
+  if (type == zForbidden) return (R / (1. + R)); // forbidden
+  cerr << "HeLikeRatio: Error in type " << type << "\n";
   return 0.;
   // x (important for high Z) is not currently supported - 060807 MAL
 }
@@ -75,3 +74,4 @@ Real HeLikeRatio::getR (Real u)
   Real dilution = 1. - sqrt (1. - u * u); // actually dilution is twice this
   return (itsR0 / (1. + itsP * dilution)); // <-- but this is correct
 }
+

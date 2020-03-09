@@ -180,7 +180,7 @@ double Lx::integrand (double u)
   */
   Real HeLikeFactor = 1.;
   if (isHeLike && (itsHeLikeType != wResonance)) {
-    HeLikeFactor = itsHeLikeRatio->getHeLikeFactor (u);
+    HeLikeFactor = itsHeLikeRatio->getHeLikeFactor (u, itsHeLikeType);
   }
   Real EscapeProbability = 1.;
   /*

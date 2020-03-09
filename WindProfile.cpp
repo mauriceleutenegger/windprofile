@@ -145,7 +145,6 @@ void WindProfile::getOneFlux (RealArray& flux, HeLikeType type)
 {
   if (itsModelType == helike) {
     itsWindParameter->setX (itsEnergyArray, x, type);
-    itsHeLikeRatio->setHeLikeType (type);
     itsLx->setHeLikeType (type);
   } else {
     itsWindParameter->setX (itsEnergyArray, x);
