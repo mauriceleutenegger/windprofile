@@ -25,17 +25,104 @@
 
 #include "xsTypes.h"
 
-int LoadKappa 
-(RealArray& kappa, RealArray& kappaWavelength, Real& mu, bool HeII = false);
+// Singleton
+class KappaData
+{
+ public:
+  static KappaData& instance ();
+  KappaData ();
+  const RealArray getKappa ();
+  const RealArray getWavelength ();
+  const RealArray getKappaHeII ();
+  const RealArray getWavelengthHeII ();
+  const RealArray getKappaVV (RealArray RelativeAbundances);
+  const RealArray getEnergyVV ();
+  Real getMu ();
+  Real getMuHeII ();
+  void refreshData ();
+  bool checkStatus ();
+  bool checkStatusHeII ();
+  bool checkStatus2D ();
+ private:
+  bool isKappaOK;
+  bool isKappaHeIIOK;
+  bool isKappa2DOK;
+  string itsFilename;
+  string itsFilenameHeII;
+  string itsFilename2D;
 
-int LoadKappaZ (RealArray& kappa, RealArray& kappaEnergy, RealArray abundances);
+  RealArray itsKappa; // initialized as empty
+  RealArray itsWavelength;
+  RealArray itsKappaHeII; // initialized as empty
+  RealArray itsWavelengthHeII;
+  size_t itsAx1;
+  size_t itsAx2;
+  RealArray itsKappaZ; // initialized as empty
+  // itsKappaZ will be a 1D representation of a 2D array
+  // with dimensions itsAx1, itsAx2
+  RealArray itsEnergyZ;
+  const size_t itsNZ;
+  size_t itsNEnergiesZ;
+  RealArray itsAtomicNumber;
+  RealArray itsAtomicMass;
+  Real itsMu;
+  Real itsMuHeII;
 
-int LoadTransmission
-(RealArray& TransmissionTauStar, RealArray& Transmission);
+  void getFilenames ();
+  void loadData ();
+  void loadDataHeII ();
+  void loadData2D ();
+};
 
-int LoadTransmission2D
-(RealArray& TransmissionTauStar, RealArray& TransmissionKappaRatio, 
- RealArray& Transmission2D, int& ax1, int& ax2);
-/* Note that Transmission2D is a 1D RealArray representation of a 2D array with dimensions ax1 and ax2. */
+// Singleton
+class TransmissionData
+{
+ public:
+  static TransmissionData& instance ();
+  const RealArray getTransmission ();
+  const RealArray getTauStar ();
+  //Real getMu ();
+  // checkStatus will reload file if definitions changed
+  // and will return true if everything if OK
+  bool checkStatus ();
+ private:
+  TransmissionData ();
+  bool isOK;
+  string itsFilename;
+  RealArray itsTransmission; // initialized as empty
+  RealArray itsTauStar;
+  void getFilename ();
+  void loadData ();
+};
+
+// Singleton
+class TransmissionData2D
+{
+ public:
+  static TransmissionData2D& instance ();
+  const RealArray getTransmission ();
+  // getTransmission returns a 1D representation of a 2D array
+  const RealArray getTauStar ();
+  const RealArray getKappaRatio ();
+  size_t getAx1 () {return itsAx1;}
+  size_t getAx2 () {return itsAx2;}
+  //Real getMu ();
+  // checkStatus will reload file if definitions changed
+  // and will return true if everything if OK
+  bool checkStatus ();
+ private:
+  TransmissionData2D ();// private constructor for singleton
+  bool isOK;
+  string itsFilename;
+  RealArray itsTransmission; // initialized as empty
+  RealArray itsTauStar;
+  RealArray itsKappaRatio;
+  size_t itsAx1;
+  size_t itsAx2;
+  void getFilename ();
+  void loadData ();
+};
+
+
 
 #endif//LOAD_WIND_ABSORPTION_TABLES

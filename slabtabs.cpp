@@ -84,6 +84,9 @@ void slamtabs
   return;
 }
 
+// Note that the conversion from NH to mass column has to happen in
+// slabAbsorption and not sooner, because we need to know the value of
+// mu (mean mass per particle), which comes from kappaData.
 void slabAbsorption (const RealArray& energy, const RealArray& parameter, 
 		     RealArray& flux, const string& init, 
 		     bool MassColumnDensity)
@@ -98,11 +101,21 @@ void slabAbsorption (const RealArray& energy, const RealArray& parameter,
   Real Column = parameter[i++]; // units depend on calling function
 
   // load kappa
-
-  RealArray kappa;
-  RealArray kappaWavelength;
-  Real mu;
-  LoadKappa (kappa, kappaWavelength, mu);
+  // Singleton container class only loads when filename changes in xset
+  KappaData& theKappaData = KappaData::instance ();
+  
+  // check if we need to load a new file:
+  theKappaData.refreshData ();
+  // make sure the data are valid
+  bool Kstatus = theKappaData.checkStatus ();
+  if (!Kstatus) {
+    cerr << "windtab1: Problem with kappa file." << endl;
+    return;
+  }
+  // get data from container
+  RealArray kappa = theKappaData.getKappa ();
+  RealArray kappaWavelength = theKappaData.getWavelength ();
+  Real mu = theKappaData.getMu ();
 
   // determine units of column parameter
   if (MassColumnDensity) {

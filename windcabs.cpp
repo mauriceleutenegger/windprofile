@@ -58,11 +58,21 @@ void windcabs
 
   // --------------- Load kappas -----------------
 
-  RealArray kappa;
-  RealArray kappaWavelength;
-  Real mu;
-  LoadKappa (kappa, kappaWavelength, mu);
-
+  // Singleton container class only loads when filename changes in xset
+  KappaData& theKappaData = KappaData::instance ();
+  // check if we need to load a new file:
+  theKappaData.refreshData ();
+  // make sure the data are valid
+  bool Kstatus = theKappaData.checkStatus ();
+  if (!Kstatus) {
+    cerr << "windtab1: Problem with kappa file." << endl;
+    return;
+  }
+  // get data from container
+  RealArray kappa = theKappaData.getKappa ();
+  RealArray kappaWavelength = theKappaData.getWavelength ();
+  Real mu = theKappaData.getMu ();
+  
   // -------------- Calculate transmission -------------------
 
   for (i = 0; i < fluxSize; i++) {

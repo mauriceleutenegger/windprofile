@@ -151,24 +151,49 @@ void windtabs
   }
 }
 
-/* Standard windtabs without variable He II ionziation fraction. */
+/* Standard windtabs without variable He II ionization fraction. */
 void windtab1 (const RealArray& energy, RealArray& flux, Real rhoRstar)
 {
   
   // load kappa
-
+  // Singleton container class only loads when filename changes in xset
+  KappaData& theKappaData = KappaData::instance ();
+  
   RealArray kappa;
   RealArray kappaWavelength;
   Real mu;
-  int status = LoadKappa (kappa, kappaWavelength, mu);
-  if (status) {return;}
+
+  // check if we need to load a new file:
+  theKappaData.refreshData ();
+  // make sure the data are valid
+  bool Kstatus = theKappaData.checkStatus ();
+  if (!Kstatus) {
+    cerr << "windtab1: Problem with kappa file." << endl;
+    return;
+  }
+  // get data from container
+  kappa = theKappaData.getKappa ();
+  kappaWavelength = theKappaData.getWavelength ();
+  mu = theKappaData.getMu ();
 
   // load optical depth and transmission
-
+  // Singleton container class only loads when filename changes in xset
+  TransmissionData& theTransmissionData = TransmissionData::instance ();
+  
   RealArray TransmissionTauStar;
   RealArray Transmission;
-  status = LoadTransmission (TransmissionTauStar, Transmission);
-  if (status) {return;}
+
+  // check if we need to load a new file:
+  bool Tstatus = theTransmissionData.checkStatus ();
+  if (!Tstatus) {
+    cerr << "windtab1: Problem with transmission file." << endl;
+    return;
+  }
+  // get data from container
+  Transmission = theTransmissionData.getTransmission ();
+  TransmissionTauStar = theTransmissionData.getTauStar ();
+
+  // calculate output transmission on energy grid
   size_t fluxSize = flux.size ();
   for (size_t i = 0; i < fluxSize; i++) {
     Real responseWavelength = 2. * CONST_HC_KEV_A / (energy[i] + energy[i+1]); 
@@ -185,23 +210,37 @@ void windtab2 (const RealArray& energy, RealArray& flux, Real rhoRstar)
 {
   
   /* load kappa */
- 
+
+  // making it static means that it should persist
+  //static KappaData theKappaData ();
+  KappaData& theKappaData = KappaData::instance ();
+  
   RealArray kappa;
   RealArray kappaWavelength;
-  Real mu;
-  int status = LoadKappa (kappa, kappaWavelength, mu);
-  if (status) {return;}
-
-  /* load HeII kappa */
-
   RealArray kappaHeII;
   RealArray kappaHeIIWavelength;
-  Real temp;
-  status = LoadKappa (kappaHeII, kappaHeIIWavelength, temp, true);
-  if (status) {return;}
-
+  Real mu;
+  Real muHeII;
+  // check if we need to load a new file:
+  theKappaData.refreshData ();
+  // make sure the data are valid
+  bool Kstatus = theKappaData.checkStatus ();
+  if (!Kstatus) {
+    cerr << "windtab2: Problem with kappa file." << endl;
+    return;
+  }
+  // get data from container
+  kappa = theKappaData.getKappa ();
+  kappaWavelength = theKappaData.getWavelength ();
+  mu = theKappaData.getMu ();
+  kappaHeII = theKappaData.getKappaHeII ();
+  kappaHeIIWavelength = theKappaData.getWavelengthHeII ();
+  muHeII = theKappaData.getMuHeII ();
+  
   /* Calculate kappa ratio. */
 
+  // first check to make sure we didn't screw up and load
+  // arrays of different sizes
   if (kappa.size () != kappaHeII.size ()) {
     cerr << "windtab2: kappa and kappaHeII arrays are different sizes.\n";
     cerr << "kappa.size () = " << kappa.size () << "\n";
@@ -212,16 +251,12 @@ void windtab2 (const RealArray& energy, RealArray& flux, Real rhoRstar)
   RealArray kappaRatio (kappa.size ());
   kappaRatio = kappaHeII / kappa;
 
-  RealArray TransmissionTauStar;
-  RealArray TransmissionKappaRatio;
-  /* Note that Transmission2D is a 1D Realarray representation of a 
-     2D array with size (ax1, ax2). */
-  RealArray Transmission2D;
-  int ax1 = 0;
-  int ax2 = 0;
-  LoadTransmission2D (TransmissionTauStar, TransmissionKappaRatio, 
-		      Transmission2D, ax1, ax2);
-
+  /* Load 2D transmission from container */
+  TransmissionData2D& theTransmissionData2D = TransmissionData2D::instance ();
+  RealArray TransmissionTauStar = theTransmissionData2D.getTauStar ();
+  RealArray TransmissionKappaRatio = theTransmissionData2D.getKappaRatio ();
+  RealArray Transmission2D = theTransmissionData2D.getTransmission ();
+  size_t ax1 = theTransmissionData2D.getAx1 ();
   /* Now that everything is loaded:
      calculate taustar and kapparatio for each wavelength;
      look up transmission 2d for those values and assign. */
@@ -243,31 +278,52 @@ void windtab2 (const RealArray& energy, RealArray& flux, Real rhoRstar)
 void windtab3 (const RealArray& energy, RealArray& flux, Real rhoRstar,
                RealArray abundances)
 {
-  
-  // load kappa - 2D table by Z; weight by abundances
 
   RealArray kappa;
   RealArray kappaEnergy;
-  int status = LoadKappaZ (kappa, kappaEnergy, abundances);
-  if (status) {return;}
-
-  // Write out a file with kappa, given the abundances.
-  string kappaOutFilename = getXspecVariable ("KAPPAZOUTFILE",\
-                                              "kappaZ.txt");
-  writeKappaZ (kappa, kappaEnergy, kappaOutFilename);
   
-  // load optical depth and transmission
-  // (this should be the same as for windtab1 -
-  // only the kappa loading is different
-  // for variable abundances)
-
-  RealArray TransmissionTauStar;
-  RealArray Transmission;
-  status = LoadTransmission (TransmissionTauStar, Transmission);
-  if (status) {
-    cerr << "windtab3: Failed to load transmission file." << endl;
+  // load kappa - 2D table by Z; weight by abundances
+  // this is a singleton container object
+  KappaData& theKappaData = KappaData::instance ();
+  // check if we need to load a new file:
+  theKappaData.refreshData ();
+  // make sure the data are valid
+  bool Kstatus = theKappaData.checkStatus ();
+  if (!Kstatus) {
+    cerr << "windtab3: Problem with kappa file." << endl;
     return;
   }
+  // get data from container
+  kappa = theKappaData.getKappaVV (abundances);
+  kappaEnergy = theKappaData.getEnergyVV ();
+  
+  // Write out a file with kappa, given the abundances.
+  // But only if SAVEKAPPAZ is set to 1
+  if (getXspecVariable ("SAVEKAPPAZ", "0") == "1") {
+    string kappaOutFilename = getXspecVariable ("KAPPAZOUTFILE",    \
+                                                "kappaZ.txt");
+    writeKappaZ (kappa, kappaEnergy, kappaOutFilename);
+  }
+
+  // load optical depth and transmission
+
+  // use singleton container object
+  TransmissionData& theTransmissionData = TransmissionData::instance ();
+  //static TransmissionData theTransmissionData ();
+  
+  RealArray TransmissionTauStar;
+  RealArray Transmission;
+
+  bool Tstatus = theTransmissionData.checkStatus ();
+  if (!Tstatus) {
+      cerr << "windtab3: Problem with transmission file." << endl;
+      return;
+  }
+  Transmission = theTransmissionData.getTransmission ();
+  TransmissionTauStar = theTransmissionData.getTauStar ();
+  
+  // calculate output transmission on energy grid
+  
   size_t fluxSize = flux.size ();
   for (size_t i = 0; i < fluxSize; i++) {
     Real centerEnergy = (energy[i] + energy[i+1]) / 2.;
@@ -280,7 +336,7 @@ void windtab3 (const RealArray& energy, RealArray& flux, Real rhoRstar,
 
 }
 
-// For now this writes to a text file
+// This writes to a text file
 void writeKappaZ (const RealArray& kappa, const RealArray& kappaEnergy,\
                   const string& kappaOutFilename)
 {
@@ -297,6 +353,7 @@ void writeKappaZ (const RealArray& kappa, const RealArray& kappaEnergy,\
   return;
 }
 
+// ------------ Wrappers for isis ----------------
 
 void C_windtabs
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 

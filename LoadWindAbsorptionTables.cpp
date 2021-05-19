@@ -28,284 +28,470 @@
 //#include "xsFortran.h"
 #include "FunctionUtility.h"
 
+// Uncomment this for debugging output
+//#define LOADWINDABSTBLS_DEBUG 1
+
 using namespace std;
 using namespace CCfits;
 
-int fillAbundanceArray (RealArray& ExplicitRelativeAbundances,
-                        RealArray RelativeAbundances);
+// ----------------- class KappaData ----------------------
 
-int getMassFractions (RealArray RelativeAbundances, RealArray& MassFractions);
+KappaData& KappaData::instance ()
+{
+  static KappaData kappaData; // calls constructor
+  return kappaData;
+}
 
-int LoadKappa 
-(RealArray& kappa, RealArray& kappaWavelength, Real& mu, bool HeII)
+KappaData::KappaData ()
+  : isKappaOK (false), isKappaHeIIOK (false), isKappa2DOK (false),
+    itsAx1 (0), itsAx2 (0), itsNZ (30), itsNEnergiesZ (0),
+    itsMu (1.0), itsMuHeII (1.0)
+{
+  getFilenames ();
+  loadData ();
+  loadDataHeII ();
+  loadData2D ();
+  return;
+}
+
+const RealArray KappaData::getKappa ()
+{
+  return itsKappa;
+}
+
+const RealArray KappaData::getWavelength ()
+{
+  return itsWavelength;
+}
+
+const RealArray KappaData::getKappaHeII ()
+{
+  return itsKappaHeII;
+}
+
+const RealArray KappaData::getWavelengthHeII ()
+{
+  return itsWavelengthHeII;
+}
+
+
+const RealArray KappaData::getKappaVV (RealArray RelativeAbundances)
+{
+  RealArray MassFractions (0., itsNZ);
+  RealArray kappa (0., itsNEnergiesZ);
+
+  // calculate mass fractions from abundances and atomic masses
+  Real sum = 0.;
+  for (size_t i=0; i<itsNZ; i++) {
+    size_t Z = i + 1;
+    MassFractions[i] = FunctionUtility::getAbundance (Z) * itsAtomicMass[i] *
+      RelativeAbundances[i];
+    sum += MassFractions[i];
+  }
+  if (sum > 0.) {
+    MassFractions /= sum;
+  } else {
+    cerr << "KappaData::getKappaVV () : sum of mass fractions is <= 0" << endl;
+    return kappa; // return zeros
+  }
+  // sum kappas weighted by mass fractions
+  // (It would be better if there was a vectorized way to do this,
+  // but I don't know what it is.)
+  for (size_t i=0; i<itsNZ; i++) {
+    for (size_t j=0; j<itsNEnergiesZ; j++){
+      size_t k = i*itsAx1 + j; // this is the 1d representation of the 2d array
+      kappa[j] += itsKappaZ[k] * MassFractions[i];
+    }
+  }
+  return kappa;
+}
+
+const RealArray KappaData::getEnergyVV ()
+{
+  return itsEnergyZ;
+}
+
+
+Real KappaData::getMu ()
+{
+  return itsMu;
+}
+
+Real KappaData::getMuHeII ()
+{
+  return itsMuHeII;
+}
+
+// call checkStatus every time windtabs functions are called
+
+void KappaData::refreshData ()
+{
+  string oldFilename = itsFilename;
+  string oldFilenameHeII = itsFilenameHeII;
+  string oldFilename2D = itsFilename2D;
+  getFilenames ();
+  if (oldFilename != itsFilename) {
+    loadData ();
+  }
+  if (oldFilenameHeII != itsFilenameHeII) {
+    loadDataHeII ();
+  }
+  if (oldFilename2D != itsFilename2D) {
+    loadData2D ();
+  }
+}
+
+bool KappaData::checkStatus ()
+{
+  return isKappaOK;
+}
+
+bool KappaData::checkStatusHeII ()
+{
+  return isKappaHeIIOK;
+}
+
+bool KappaData::checkStatus2D ()
+{
+  return isKappa2DOK;
+}
+
+void KappaData::getFilenames ()
 {
   // Get data directory from XSPEC xset variables
   string windtabsDirectory = getXspecVariable ("WINDTABSDIRECTORY", "./");
-  // Get filename from XSPEC xset variables  
-  string FITSfilename = windtabsDirectory + "/";
-  if (HeII) {
-    FITSfilename += getXspecVariable ("KAPPAFILENAMEHEII", "kappaHeII.fits");
-  } else {
-    FITSfilename += getXspecVariable ("KAPPAFILENAME", "kappa.fits");
-  }
-  string KeywordNameMu ("mu");
+  // Get filenames from XSPEC xset variables
+  itsFilename = windtabsDirectory + "/" +
+    getXspecVariable ("KAPPAFILENAME", "kappa.fits");
+  itsFilenameHeII = windtabsDirectory + "/" +
+    getXspecVariable ("KAPPAHEIIFILENAME", "kappaHeII.fits");
+  itsFilename2D = windtabsDirectory + "/" +
+     getXspecVariable ("KAPPAZFILENAME", "kappa.fits");
+  // perhaps would be best to completely disable default filenames
+  // to prevent dumb mistakes, but leave it for now
+}
 
+void KappaData::loadData (){
+  #ifdef LOADWINDABSTBLS_DEBUG
+  cout << "KappaData::loadData () running" << endl;
+  #endif
+  // load data from "regular" data file
+  string KeywordNameMu ("mu");
   try {
     int extensionNumber (1);
-    auto_ptr<FITS> pInfile 
-      (new FITS (FITSfilename, Read, extensionNumber, false));
+    unique_ptr<FITS> pInfile 
+      (new FITS (itsFilename, Read, extensionNumber, false));
+    /* Note that auto_ptr is deprecated in favor of unique_ptr */
     ExtHDU& table = pInfile->currentExtension ();
     size_t NumberOfRows = table.column(1).rows ();
-    table.column(1).read (kappaWavelength, 1, NumberOfRows);
-    table.column(2).read (kappa, 1, NumberOfRows);
-    mu = 1.; // default value in case keyword doesn't exist
+    table.column(1).read (itsWavelength, 1, NumberOfRows);
+    table.column(2).read (itsKappa, 1, NumberOfRows);
+    itsMu = 1.; // default value in case keyword doesn't exist
     try {
-      table.readKey (KeywordNameMu, mu);
+      table.readKey (KeywordNameMu, itsMu);
     }
     catch (FitsException& issue) {
-      cerr << "LoadKappa: CCfits / FITSio exception:" << endl;
+      cerr << "KappaData::loadData: CCfits / FITSio exception:" << endl;
       cerr << issue.message () << endl;
       cerr << "(file probably doesn't have mu keyword)" << endl;
       cerr << "Using mu = 1.0" << endl;
     }
+    isKappaOK = true;
   }
   catch (FitsException& issue) {
-    cerr << "LoadKappa: CCfits / FITSio exception:" << endl;
+    cerr << "KappaData::loadData: CCfits / FITSio exception:" << endl;
     cerr << issue.message () << endl;
     cerr << "(file probably doesn't exist)" << endl;
-    return 1;
+    isKappaOK = false;
   }
-  return 0;
+  
+  return;
 }
 
-
-int LoadKappaZ (RealArray& kappa, RealArray& kappaEnergy, RealArray abundances)
+void KappaData::loadDataHeII ()
 {
-  // Get data directory from XSPEC xset variables
-  string windtabsDirectory = getXspecVariable ("WINDTABSDIRECTORY", "./");
-  // Get filename from XSPEC xset variables  
-  string FITSfilename = windtabsDirectory + "/";
-  FITSfilename += getXspecVariable ("KAPPAZFILENAME", "kappa.fits");
-  //  string KeywordNameMu ("mu");
-
-  // Set up load of 2D array kappaZ;
-  // dimensions are Z and energyx
-  RealArray kappaZ; // this gets appropriately resized when it is loaded
-  size_t ax1 (0);
-  size_t ax2 (0);
+  #ifdef LOADWINDABSTBLS_DEBUG
+  cout << "KappaData::loadDataHeII () running" << endl;
+  #endif
+  string KeywordNameMu ("mu");
   try {
-    auto_ptr<FITS> pInfile 
-      (new FITS (FITSfilename, Read, true)); // Primary HDU - Image
-    PHDU& image = pInfile->pHDU ();
-    image.read (kappaZ); // this is a 1D representation of a 2D array
-    ax1 = image.axis (0);
-    ax2 = image.axis (1);
+    int extensionNumber (1);
+    unique_ptr<FITS> pInfile 
+      (new FITS (itsFilenameHeII, Read, extensionNumber, false));
+    ExtHDU& table = pInfile->currentExtension ();
+    size_t NumberOfRows = table.column(1).rows ();
+    table.column(1).read (itsWavelengthHeII, 1, NumberOfRows);
+    table.column(2).read (itsKappaHeII, 1, NumberOfRows);
+    itsMuHeII = 1.; // default value in case keyword doesn't exist
+    try {
+      table.readKey (KeywordNameMu, itsMuHeII);
+    }
+    catch (FitsException& issue) {
+      cerr << "KappaData::loadData: CCfits / FITSio exception:" << endl;
+      cerr << issue.message () << endl;
+      cerr << "(file probably doesn't have mu keyword)" << endl;
+      cerr << "Using mu = 1.0" << endl;
+    }
+    isKappaHeIIOK = true;
   }
   catch (FitsException& issue) {
-    cerr << "LoadKappaZ: CCfits / FITSio exception:" << endl;
+    cerr << "KappaData::loadData: CCfits / FITSio exception:" << endl;
+    cerr << issue.message () << endl;
+    cerr << "(file probably doesn't exist)" << endl;
+    isKappaHeIIOK = false;
+  }
+  return;
+}
+
+void KappaData::loadData2D () {
+  #ifdef LOADWINDABSTBLS_DEBUG
+  cout << "KappaData::loadData2D () running" << endl;
+  #endif
+  // Set up load of 2D array kappaZ;
+  // dimensions are Z and energyx
+  try {
+    unique_ptr<FITS> pInfile 
+      (new FITS (itsFilename2D, Read, true)); // Primary HDU - Image
+    PHDU& image = pInfile->pHDU ();
+    image.read (itsKappaZ); // this is a 1D representation of a 2D array
+    itsAx1 = image.axis (0);
+    itsAx2 = image.axis (1);
+    isKappa2DOK = true;
+  }
+  catch (FitsException& issue) {
+    cerr << "KappaData::loadData2D (): CCfits / FITSio exception:" << endl;
     cerr << issue.message () << endl;
     cerr << "(failed reading KappaZ)" << endl;
-    return 1;
+    isKappa2DOK = false;
   }
-
   // Load energy axis for kappa table:
   try { 
     int extensionNumber (1);
-    auto_ptr<FITS> pInfile 
-      (new FITS (FITSfilename, Read, extensionNumber, false));
+    unique_ptr<FITS> pInfile 
+      (new FITS (itsFilename2D, Read, extensionNumber, false));
     ExtHDU& table = pInfile->currentExtension ();
     size_t NumberOfRows = table.column(1).rows ();
-    table.column(1).read (kappaEnergy, 1, NumberOfRows);
-    //    table.column(2).read (kappaZ, 1, NumberOfRows); // see if this works???
+    table.column(1).read (itsEnergyZ, 1, NumberOfRows);
+    itsEnergyZ *= 1.e-3; // convert from eV to keV
+    itsNEnergiesZ = itsEnergyZ.size ();
+    isKappa2DOK = true;
   }
   catch (FitsException& issue) {
-    cerr << "LoadKappa: CCfits / FITSio exception:" << endl;
+    cerr << "KappaData::loadData2D (): CCfits / FITSio exception:" << endl;
     cerr << issue.message () << endl;
     cerr << "(file probably doesn't exist)" << endl;
-    return 1;
+    isKappa2DOK = false;
   }
-  kappaEnergy *= 1.e-3; // convert from eV to keV
-
-  // get mass fractions based on xspec abund, model abund parameter,
-  // and atomic masses
-  RealArray massFractions;
-  getMassFractions (abundances, massFractions);
-
-
-  // sum kappas weighted by mass fractions
-  size_t NEnergies (kappaEnergy.size ());
-  size_t NZ (massFractions.size ());
-  kappa.resize (NEnergies, 0.); 
-  // It would be better if there was a vectorized way to do this,
-  // but I don't know what it is.
-  for (size_t i=0; i<NZ; i++) {
-    for (size_t j=0; j<NEnergies; j++){
-      size_t k = i*ax1 + j; // this is the 1d representation of the 2d array
-      kappa[j] += kappaZ[k] * massFractions[i];
-    }
-  }
-  return 0;
-}
-
-
-int LoadTransmission
-(RealArray& TransmissionTauStar, RealArray& Transmission) 
-{
-  // Get data directory from XSPEC xset variables
-  string windtabsDirectory = getXspecVariable ("WINDTABSDIRECTORY", "./");
-  // Get filename from XSPEC xset variables  
-  string FITSfilename = windtabsDirectory + "/" +
-    getXspecVariable ("TRANSMISSIONFILENAME", "tau_transmission.fits");
-  try {
-    int extensionNumber (1);
-    auto_ptr<FITS> pInfile 
-      (new FITS (FITSfilename, Read, extensionNumber, false));
-    ExtHDU& table = pInfile->currentExtension ();
-    size_t NumberOfRows = table.column(1).rows ();
-    table.column(1).read (TransmissionTauStar, 1, NumberOfRows);
-    table.column(2).read (Transmission, 1, NumberOfRows);
-  }
-  catch (FitsException& issue) {
-    cerr << "LoadTransmission: CCfits / FITSio exception:" << endl;
-    cerr << issue.message () << endl;
-    cerr << "(file probably doesn't exist)" << endl;
-    return 1;
-  }
-  return 0;
-}
-
-
-int LoadTransmission2D
-(RealArray& TransmissionTauStar, RealArray& TransmissionKappaRatio, 
- RealArray& Transmission2D, int& ax1, int& ax2)
-/* Note that Transmission2D is a 1D array that needs to be indexed in 2D */
-{
-  // Get data directory from XSPEC xset variables
-  string windtabsDirectory = getXspecVariable ("WINDTABSDIRECTORY", "./");
-  // Get filename from XSPEC xset variables  
-  string FITSfilename = windtabsDirectory + "/" +
-    getXspecVariable ("TRANSMISSIONFILENAME2D", "tau_transmission_HeII.fits");
-  try {
-    int extensionNumber (1);
-    auto_ptr<FITS> pInfile 
-      (new FITS (FITSfilename, Read, extensionNumber, false));
-    ExtHDU& table = pInfile->currentExtension ();
-    size_t NumberOfRows = table.column(1).rows ();
-    table.column(1).read (TransmissionTauStar, 1, NumberOfRows);
-    
-  }
-  catch (FitsException& issue) {
-    cerr << "LoadTransmission: CCfits / FITSio exception:" << endl;
-    cerr << issue.message () << endl;
-    cerr << "(file probably doesn't exist; failed reading TauStar)" << endl;
-    return 1;
-  }
+  // load atomic masses:
   try {
     int extensionNumber (2);
-    auto_ptr<FITS> pInfile 
-      (new FITS (FITSfilename, Read, extensionNumber, false));
-    ExtHDU& table = pInfile->currentExtension ();
-    size_t NumberOfRows = table.column(1).rows ();
-    table.column(1).read (TransmissionKappaRatio, 1, NumberOfRows);
-    
-  }
-  catch (FitsException& issue) {
-    cerr << "LoadTransmission: CCfits / FITSio exception:" << endl;
-    cerr << issue.message () << endl;
-    cerr << "(failed reading KappaRatio)" << endl;
-    return 1;
-  }
-  try {
-    auto_ptr<FITS> pInfile 
-      (new FITS (FITSfilename, Read, true)); // Primary HDU - Image
-    PHDU& image = pInfile->pHDU ();
-    image.read (Transmission2D); // this is a 1D representation
-    ax1 = image.axis (0);
-    ax2 = image.axis (1);
-  }
-  catch (FitsException& issue) {
-    cerr << "LoadTransmission: CCfits / FITSio exception:" << endl;
-    cerr << issue.message () << endl;
-    cerr << "(failed reading KappaRatio)" << endl;
-    return 1;
-  }
-  return 0;
-}
-
-int getMassFractions (RealArray RelativeAbundances, RealArray& MassFractions)
-{
-  size_t NElements (30);
-  // should try to replace this with something better
-  /*  char* ElementNames[] =
-    {"H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne",
-     "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca",
-     "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn"};*/
-  RealArray AtomicNumber;
-  RealArray AtomicMass;
-  // *** Note that relative abundances are now explicit
-  //RealArray ExplicitRelativeAbundances (1., NElements);
-  // fillAbundanceArray (ExplicitRelativeAbundances, RelativeAbundances);
-  // ********************
-  // Get data directory from XSPEC xset variables
-  string windtabsDirectory = getXspecVariable ("WINDTABSDIRECTORY", "./");
-  // Get filename from XSPEC xset variables  
-  string FITSfilename = windtabsDirectory + "/";
-  FITSfilename += getXspecVariable ("KAPPAZFILENAME", "kappaZ.fits");
-  try {
-    int extensionNumber (2);
-    auto_ptr<FITS> pInfile 
-      (new FITS (FITSfilename, Read, extensionNumber, false));
+    unique_ptr<FITS> pInfile 
+      (new FITS (itsFilename2D, Read, extensionNumber, false));
     ExtHDU& table = pInfile->currentExtension ();
     size_t NumberOfRows = table.column(1).rows ();
     // change column reading
-    table.column(1).read (AtomicNumber, 1, NumberOfRows);
-    table.column(2).read (AtomicMass, 1, NumberOfRows);
+    table.column(1).read (itsAtomicNumber, 1, NumberOfRows);
+    table.column(2).read (itsAtomicMass, 1, NumberOfRows);
+    isKappa2DOK = true;
   }
   catch (FitsException& issue) {
-    cerr << "getMassFractions: CCfits / FITSio exception:" << endl;
+    cerr << "KappaData::loadData2D (): CCfits / FITSio exception:" << endl;
     cerr << issue.message () << endl;
     cerr << "(file probably doesn't exist)" << endl;
-    return 1;
+    cerr << "File was " << itsFilename2D << endl;
+    isKappa2DOK = false;
   }
-  MassFractions.resize (NElements, 0.);
-  Real sum = 0.;
-  for (size_t i=0; i<NElements; i++) {
-    //    MassFractions[i] = FGABND (ElementNames[i]) * AtomicMass[i] *
-    //      ExplicitRelativeAbundances[i];
-    size_t Z = i + 1;
-    MassFractions[i] = FunctionUtility::getAbundance (Z) * AtomicMass[i] *
-      RelativeAbundances[i];
-    //      ExplicitRelativeAbundances[i];
-    sum += MassFractions[i];
-  }
-  // renormalize
-  if (sum > 0.) {
-    MassFractions /= sum;
-  } else {
-    cerr << "getMassFractions: sum of mass fractions is <= 0" << endl;
-    return 1;
-  }
-  return 0;
 }
 
-/*
-int fillAbundanceArray (RealArray& ExplicitRelativeAbundances,
-                        RealArray RelativeAbundances)
+
+// ----------------- class TransmissionData ---------------
+
+TransmissionData& TransmissionData::instance ()
 {
-  size_t NElements (30);
-  // This tells you which relative abundances are in the parameter
-   //  array.
-  bool whichAbundances[] =
-    {false, true, false, false, false, true, true, true, false, true,
-     false, true, true, true, false, true, false, true, false, true,
-     false, false, false, false, false, true, false, true, false, false};
-  size_t j (0);
-  for (size_t i=0; i<NElements; i++) {
-    if (whichAbundances[i]) {
-        ExplicitRelativeAbundances[i] = RelativeAbundances[j];
-        j++;
-      }
-  }
-  return 0;
+  static TransmissionData transmissionData; // calls constructor
+  return transmissionData;
 }
-*/
+
+
+TransmissionData::TransmissionData ()
+  : isOK (false)
+{
+  getFilename ();
+  loadData ();
+  return;
+}
+
+
+// just return copies
+// might not be the most efficient, but should be safe
+// and probably not even a huge efficiency hit
+const RealArray TransmissionData::getTransmission ()
+{
+  return itsTransmission;
+}
+
+const RealArray TransmissionData::getTauStar ()
+{
+  return itsTauStar;
+}
+
+// call checkStatus every time windtabs functions are called
+bool TransmissionData::checkStatus ()
+{
+  string oldFilename = itsFilename;
+  getFilename ();
+  if (oldFilename != itsFilename) {
+    loadData ();
+  }
+  return isOK;
+}
+
+void TransmissionData::getFilename ()
+{
+  // Get data directory from XSPEC xset variables
+  string windtabsDirectory = getXspecVariable ("WINDTABSDIRECTORY", "./");
+  // Get filename from XSPEC xset variables  
+  itsFilename = windtabsDirectory + "/" +
+    getXspecVariable ("TRANSMISSIONFILENAME", "tau_transmission_HeII.fits");
+}
+
+void TransmissionData::loadData ()
+{
+  #ifdef LOADWINDABSTBLS_DEBUG
+  cout << "Transmission::loadTransmission running" << endl;
+  #endif
+  try {
+    int extensionNumber (1);
+    unique_ptr<FITS> pInfile 
+      (new FITS (itsFilename, Read, extensionNumber, false));
+    ExtHDU& table = pInfile->currentExtension ();
+    size_t NumberOfRows = table.column(1).rows ();
+    table.column(1).read (itsTauStar, 1, NumberOfRows);
+    table.column(2).read (itsTransmission, 1, NumberOfRows);
+    isOK = true;
+  }
+  catch (FitsException& issue) {
+    cerr << "Transmission::loadTransmission: " << endl;
+    cerr << "CCfits / FITSio exception:" << endl;
+    cerr << issue.message () << endl;
+    cerr << "(file probably doesn't exist)" << endl;
+    isOK = false;
+  }
+  return;
+}
+
+
+// ----------------- class TransmissionData ---------------
+
+TransmissionData2D& TransmissionData2D::instance ()
+{
+  static TransmissionData2D transmissionData2D; // calls constructor
+  return transmissionData2D;
+}
+
+
+TransmissionData2D::TransmissionData2D ()
+  : isOK (false)
+{
+  getFilename ();
+  loadData ();
+  return;
+}
+
+
+// just return copies
+// might not be the most efficient, but should be safe
+// and probably not even a huge efficiency hit
+const RealArray TransmissionData2D::getTransmission ()
+{
+  return itsTransmission;
+}
+
+const RealArray TransmissionData2D::getTauStar ()
+{
+  return itsTauStar;
+}
+
+const RealArray TransmissionData2D::getKappaRatio ()
+{
+  return itsKappaRatio;
+}
+
+// call checkStatus every time windtabs functions are called
+bool TransmissionData2D::checkStatus ()
+{
+  string oldFilename = itsFilename;
+  getFilename ();
+  if (oldFilename != itsFilename) {
+    loadData ();
+  }
+  return isOK;
+}
+
+void TransmissionData2D::getFilename ()
+{
+  // Get data directory from XSPEC xset variables
+  string windtabsDirectory = getXspecVariable ("WINDTABSDIRECTORY", "./");
+  // Get filename from XSPEC xset variables  
+  itsFilename = windtabsDirectory + "/" +
+    getXspecVariable ("TRANSMISSIONFILENAME2D", "tau_transmission.fits");
+  return;
+}
+
+void TransmissionData2D::loadData ()
+{
+  #ifdef LOADWINDABSTBLS_DEBUG
+  cout << "TransmissionData2D::loadData running" << endl;
+  #endif
+  try {
+    int extensionNumber (1);
+    unique_ptr<FITS> pInfile 
+      (new FITS (itsFilename, Read, extensionNumber, false));
+    ExtHDU& table = pInfile->currentExtension ();
+    size_t NumberOfRows = table.column(1).rows ();
+    table.column(1).read (itsTauStar, 1, NumberOfRows);
+    isOK = true;
+  }
+  catch (FitsException& issue) {
+    cerr << "TransmissionData2D::loadData: " << endl;
+    cerr << "CCfits / FITSio exception:" << endl;
+    cerr << issue.message () << endl;
+    cerr << "(file probably doesn't exist)" << endl;
+    isOK = false;
+  }
+  if (!(isOK)) {return;}
+  try {
+    int extensionNumber (2);
+    unique_ptr<FITS> pInfile 
+      (new FITS (itsFilename, Read, extensionNumber, false));
+    ExtHDU& table = pInfile->currentExtension ();
+    size_t NumberOfRows = table.column(1).rows ();
+    table.column(1).read (itsKappaRatio, 1, NumberOfRows);
+    isOK = true;
+  }
+  catch (FitsException& issue) {
+    cerr << "TransmissionData2D::loadData: " << endl;
+    cerr << "CCfits / FITSio exception:" << endl;
+    cerr << issue.message () << endl;
+    cerr << "(failed reading KappaRatio)" << endl;
+    isOK = false;
+  }
+  if (!(isOK)) {return;}
+  try {
+    unique_ptr<FITS> pInfile 
+      (new FITS (itsFilename, Read, true)); // Primary HDU - Image
+    PHDU& image = pInfile->pHDU ();
+    image.read (itsTransmission); // this is a 1D representation
+    itsAx1 = image.axis (0);
+    itsAx2 = image.axis (1);
+    isOK = true;
+  }
+  catch (FitsException& issue) {
+    cerr << "TransmissionData2D::loadData: " << endl;
+    cerr << "CCfits / FITSio exception:" << endl;
+    cerr << issue.message () << endl;
+    cerr << "(failed reading 2D transmission data)" << endl;
+    isOK = false;
+  }
+  return;
+}
