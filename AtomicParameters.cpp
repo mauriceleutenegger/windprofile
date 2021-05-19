@@ -212,3 +212,85 @@ Real HeLikeParameters::getXFraction () const
   size_t i (itsAtomicNumber - 1);
   return XFraction[i];
 }
+
+/*-----------------------NeLikeParameters-------------------------*/
+
+NeLikeParameters::NeLikeParameters (int AtomicNumber) 
+  : AtomicParameters (AtomicNumber), Wavelength3F (0., NumberOfAtoms),
+    Wavelength3G (0., NumberOfAtoms), WavelengthM2 (0., NumberOfAtoms), 
+    R0 (0., NumberOfAtoms)
+{
+  initialize ();
+  return;
+}
+
+void NeLikeParameters::initialize ()
+{
+  const Real WavelengthArray3F[] = 
+    {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 
+     0., 0., 0., 0., 0., 0., 0., 0., 0., 
+     0., 0., 0., 0., 0., 16.780};
+  
+  const Real WavelengthArray3G[] =
+    {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 
+     0., 0., 0., 0., 0., 0., 0., 0., 0., 
+     0., 0., 0., 0., 0., 17.051};
+  
+  const Real WavelengthArrayM2[] =
+    {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 
+     0., 0., 0., 0., 0., 0., 0., 0., 0., 
+     0., 0., 0., 0., 0., 17.096};
+
+  const Real R0Array[] = 
+    {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 
+     0., 0., 0., 0., 0., 0., 0., 0., 0., 
+     0., 0., 0., 0., 0., 1.02};
+  /* 
+     Wavelengths from Brown et al 1998
+     3F value from May et al is 16.778
+     Based on Capella HETGS, it might be more like 16.777
+   */
+  
+  Wavelength3F = RealArray (WavelengthArray3F, NumberOfAtoms);
+  Wavelength3G = RealArray (WavelengthArray3G, NumberOfAtoms);
+  WavelengthM2 = RealArray (WavelengthArrayM2, NumberOfAtoms);
+  R0 = RealArray (R0Array, NumberOfAtoms);
+
+  return;
+}
+
+void NeLikeParameters::getWavelength (RealArray& wavelength) const
+{
+  size_t i (itsAtomicNumber - 1);
+  wavelength.resize (4);
+  wavelength[0] = Wavelength3F[i];
+  wavelength[1] = Wavelength3G[i];
+  wavelength[2] = WavelengthM2[i];
+  return;
+}
+
+Real NeLikeParameters::getWavelength (HeLikeType type) const
+{
+  size_t i (itsAtomicNumber - 1);
+  switch (type) {
+  case Ne3F:
+    return Wavelength3F[i];
+    break;
+  case Ne3G:
+    return Wavelength3G[i];
+    break;
+  case NeM2:
+    return WavelengthM2[i];
+    break;
+  default:
+    cout << "NeLikeParameters::getWavelength: unrecognized type.\n";
+    return 15.0;
+    break;
+  }
+}
+
+Real NeLikeParameters::getR0 () const
+{
+  size_t i (itsAtomicNumber - 1);
+  return R0[i];
+}

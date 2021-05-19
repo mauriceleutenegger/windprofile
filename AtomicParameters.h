@@ -71,4 +71,21 @@ class HeLikeParameters : public AtomicParameters
   void initialize ();
 };
 
+class NeLikeParameters : public AtomicParameters
+{
+public:
+  NeLikeParameters (int AtomicNumber = 26);
+  void getWavelength (RealArray& wavelength) const;
+  Real getWavelength (HeLikeType type) const;
+  Real getR0 () const;
+  //Real getXFraction () const; // Returns x / (x + y).
+private:
+  static const size_t NumberOfAtoms = 26;
+  RealArray Wavelength3F;
+  RealArray Wavelength3G;
+  RealArray WavelengthM2;
+  RealArray R0; /* ratio of M2/3G, I think */
+  void initialize ();
+};
+
 #endif//MAL_ATOMIC_PARAMETERS_H

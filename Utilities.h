@@ -29,7 +29,11 @@
 
 enum HLikeType {single, blue, red};
 //enum HeLikeType {resonance, intercombination, forbidden};
-enum HeLikeType {wResonance, xIntercombination, yIntercombination, zForbidden};
+//enum HeLikeType {wResonance, xIntercombination, yIntercombination, zForbidden};
+/* Abusing the HeLikeType enum to include NeLike 2p-3s lines as well */
+enum HeLikeType {wResonance, xIntercombination, yIntercombination, zForbidden, 
+Ne3F, Ne3G, NeM2, facNe3F, facNe3G, facNeM2};
+/* Not sure what the difference is between the FAC and non-FAC types; I think that does something in Gabe's part of the code. */
 
 int compare (Real a, Real b);
 Real muPZ (Real p, Real z);

@@ -26,6 +26,7 @@
 #include "xsTypes.h"
 #include "Gaussian.h"
 #include "HeLikeGaussian.h"
+#include "NeLikeGaussian.h"
 #include "AtomicParameters.h"
 #include "Utilities.h"
 #include "isisCPPFunctionWrapper.h"
@@ -37,6 +38,8 @@ static const size_t HGAUSS_N_PARAMETERS (3);
 static const size_t HCGAUSS_N_PARAMETERS (4);
 static const size_t HEGAUSS_N_PARAMETERS (5);
 static const size_t HECGAUSS_N_PARAMETERS (6);
+static const size_t NEGAUSS_N_PARAMETERS (5);
+static const size_t NECGAUSS_N_PARAMETERS (7);
 
 extern "C" void hgauss
 (const RealArray& energy, const RealArray& parameter, 
@@ -71,6 +74,24 @@ extern "C" void hecgauss
  /*@unused@*/ const string& init);
 
 extern "C" void C_hecgauss
+(const Real* energy, int Nflux, const Real* parameter, int spectrum, 
+ Real* flux, Real* fluxError, const char* init);
+
+extern "C" void negauss
+(const RealArray& energy, const RealArray& parameter, 
+ /*@unused@*/ int spectrum, RealArray& flux, /*@unused@*/ RealArray& fluxError,
+ /*@unused@*/ const string& init);
+
+extern "C" void C_negauss
+(const Real* energy, int Nflux, const Real* parameter, int spectrum, 
+ Real* flux, Real* fluxError, const char* init);
+
+extern "C" void necgauss
+(const RealArray& energy, const RealArray& parameter, 
+ /*@unused@*/ int spectrum, RealArray& flux, /*@unused@*/ RealArray& fluxError,
+ /*@unused@*/ const string& init);
+
+extern "C" void C_necgauss
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init);
 
@@ -151,13 +172,12 @@ void hegauss
  /*@unused@*/ const string& init)
 {
   fluxError.resize (0);
-  size_t Nparameters (parameter.size ());
-  RealArray NewParameter (Nparameters + 1);
-  for (size_t i = 0; i < Nparameters - 1; i++)
+  // copy parameters; leave last two (shift parameters) as zero
+  RealArray NewParameter (HECGAUSS_N_PARAMETERS);
+  for (size_t i = 0; i < HEGAUSS_N_PARAMETERS; i++)
     NewParameter[i] = parameter[i];
-  NewParameter[Nparameters] = parameter[Nparameters - 1];
-  /* Leave NewParameter[Nparameters-1] initialized to zero
-     for zero calibration shift. */
+  /* note that parameter actually has one extra parameter at the end,
+     which is the normalization; we just ignore it here. */
   HeLikeGaussian He (energy, NewParameter);
   He.getFlux (flux);
   return;
@@ -171,6 +191,34 @@ void hecgauss
   fluxError.resize (0);
   HeLikeGaussian He (energy, parameter);
   He.getFlux (flux);
+  return;
+}
+
+void negauss
+(const RealArray& energy, const RealArray& parameter, 
+ /*@unused@*/ int spectrum, RealArray& flux, /*@unused@*/ RealArray& fluxError,
+ /*@unused@*/ const string& init)
+{
+  fluxError.resize (0);
+  // copy parameters; leave last two (shift parameters) as zero
+  RealArray NewParameter (NECGAUSS_N_PARAMETERS);
+  for (size_t i = 0; i < NEGAUSS_N_PARAMETERS; i++)
+    NewParameter[i] = parameter[i];
+  /* note that parameter actually has one extra parameter at the end,
+     which is the normalization; we just ignore it here. */
+  NeLikeGaussian Ne (energy, NewParameter);
+  Ne.getFlux (flux);
+  return;
+}
+
+void necgauss
+(const RealArray& energy, const RealArray& parameter, 
+ /*@unused@*/ int spectrum, RealArray& flux, /*@unused@*/ RealArray& fluxError,
+ /*@unused@*/ const string& init)
+{
+  fluxError.resize (0);
+  NeLikeGaussian Ne (energy, parameter);
+  Ne.getFlux (flux);
   return;
 }
 
@@ -283,6 +331,26 @@ void C_hecgauss
   isisCPPFunctionWrapper (energy, Nflux, parameter, spectrum, flux,
 			  fluxError, init, HECGAUSS_N_PARAMETERS,
 			  &hecgauss);
+  return;
+}
+
+void C_negauss
+(const Real* energy, int Nflux, const Real* parameter, int spectrum, 
+ Real* flux, Real* fluxError, const char* init)
+{
+  isisCPPFunctionWrapper (energy, Nflux, parameter, spectrum, flux,
+			  fluxError, init, NEGAUSS_N_PARAMETERS,
+			  &negauss);
+  return;
+}
+
+void C_necgauss
+(const Real* energy, int Nflux, const Real* parameter, int spectrum, 
+ Real* flux, Real* fluxError, const char* init)
+{
+  isisCPPFunctionWrapper (energy, Nflux, parameter, spectrum, flux,
+			  fluxError, init, NECGAUSS_N_PARAMETERS,
+			  &necgauss);
   return;
 }
 
