@@ -258,8 +258,8 @@ void windtab2 (const RealArray& energy, RealArray& flux, Real rhoRstar)
   }
   /* Assume that the two kappas are on the same wavelength grid. */
   RealArray kappaRatio (kappa.size ());
-  //kappaRatio = kappaHeII / kappa; // this was wrong!
-  kappaRatio = (kappaHeII / kappa) + 1.;
+  kappaRatio = kappaHeII / kappa; // this is the correct definition of kappaRatio
+  //kappaRatio = (kappaHeII / kappa) + 1.; // tried this, but it was wrong
 
   /* Load 2D transmission from container */
   TransmissionData2D& theTransmissionData2D = TransmissionData2D::instance ();
@@ -311,7 +311,8 @@ void windtab4 (const RealArray& energy, RealArray& flux, Real rhoRstar,
   kappaHeII = theKappaData.getKappaVV (abundances, true);
   // calculate ratio
   RealArray kappaRatio (kappa.size ());
-  kappaRatio = (kappaHeII / kappa) + 1.;
+  kappaRatio = (kappaHeII / kappa); // this is the correct definition
+  //kappaRatio = (kappaHeII / kappa) + 1.; // this is wrong
   
   
   // Write out a file with kappa, given the abundances.
