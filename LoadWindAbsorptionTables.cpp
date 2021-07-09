@@ -75,7 +75,8 @@ const RealArray KappaData::getWavelengthHeII ()
 }
 
 
-const RealArray KappaData::getKappaVV (RealArray RelativeAbundances)
+const RealArray KappaData::getKappaVV (RealArray RelativeAbundances,
+                                       bool doHeII)
 {
   RealArray MassFractions (0., itsNZ);
   RealArray kappa (0., itsNEnergiesZ);
@@ -94,6 +95,14 @@ const RealArray KappaData::getKappaVV (RealArray RelativeAbundances)
     cerr << "KappaData::getKappaVV () : sum of mass fractions is <= 0" << endl;
     return kappa; // return zeros
   }
+  // if the doHeII flag is set use the mass fraction to get the opacity for HeII only
+  if (doHeII) {
+    for (size_t j=0; j<itsNEnergiesZ; j++) {
+      //kappa[j] += itsKappaZ_HeII[j] * MassFractions[1];
+      kappa = itsKappaZ_HeII * MassFractions[1]; // vector * scalar = vector
+      return kappa; // only return the HeII part!
+    }
+  }
   // sum kappas weighted by mass fractions
   // (It would be better if there was a vectorized way to do this,
   // but I don't know what it is.)
@@ -110,7 +119,6 @@ const RealArray KappaData::getEnergyVV ()
 {
   return itsEnergyZ;
 }
-
 
 Real KappaData::getMu ()
 {
@@ -292,6 +300,24 @@ void KappaData::loadData2D () {
     // change column reading
     table.column(1).read (itsAtomicNumber, 1, NumberOfRows);
     table.column(2).read (itsAtomicMass, 1, NumberOfRows);
+    isKappa2DOK = true;
+  }
+  catch (FitsException& issue) {
+    cerr << "KappaData::loadData2D (): CCfits / FITSio exception:" << endl;
+    cerr << issue.message () << endl;
+    cerr << "(file probably doesn't exist)" << endl;
+    cerr << "File was " << itsFilename2D << endl;
+    isKappa2DOK = false;
+  }
+  // load HeII opacity:
+  try {
+    int extensionNumber (3);
+    unique_ptr<FITS> pInfile 
+      (new FITS (itsFilename2D, Read, extensionNumber, false));
+    ExtHDU& table = pInfile->currentExtension ();
+    size_t NumberOfRows = table.column(1).rows ();
+    // change column reading
+    table.column(1).read (itsKappaZ_HeII, 1, NumberOfRows);
     isKappa2DOK = true;
   }
   catch (FitsException& issue) {

@@ -73,8 +73,13 @@ void windtab1 (const RealArray& energy, RealArray& flux, Real RhoRstar);
 void windtab2 (const RealArray& energy, RealArray& flux, Real RhoRstar);
 void windtab3 (const RealArray& energy, RealArray& flux, Real RhoRstar,\
                RealArray abundances);
+void windtab4 (const RealArray& energy, RealArray& flux, Real RhoRstar,\
+               RealArray abundances);
 void writeKappaZ (const RealArray& kappa, const RealArray& kappaEnergy,\
                   const string& kappaOutFilename);
+void writeKappaZHeII (const RealArray& kappa, const RealArray& kappaHeII,\
+                      const RealArray& kappaEnergy,                     \
+                      const string& kappaOutFilename);
 
 void vvwindta (const RealArray& energy, const RealArray& parameter, 
    /*@unused@*/ int spectrum, RealArray& flux, 
@@ -94,7 +99,11 @@ void vvwindta (const RealArray& energy, const RealArray& parameter,
   for (size_t j=0; j<abundanceSize; j++) {
     abundances[j] = parameter[i++];
   }
-  windtab3 (energy, flux, rhoRstar, abundances);
+  if (getXspecVariable ("HEII", "0") == "1") {
+    windtab4 (energy, flux, rhoRstar, abundances);
+  } else {
+    windtab3 (energy, flux, rhoRstar, abundances);
+  }
   return;
 }
 
@@ -249,7 +258,8 @@ void windtab2 (const RealArray& energy, RealArray& flux, Real rhoRstar)
   }
   /* Assume that the two kappas are on the same wavelength grid. */
   RealArray kappaRatio (kappa.size ());
-  kappaRatio = kappaHeII / kappa;
+  //kappaRatio = kappaHeII / kappa; // this was wrong!
+  kappaRatio = (kappaHeII / kappa) + 1.;
 
   /* Load 2D transmission from container */
   TransmissionData2D& theTransmissionData2D = TransmissionData2D::instance ();
@@ -264,6 +274,73 @@ void windtab2 (const RealArray& energy, RealArray& flux, Real rhoRstar)
   for (size_t i = 0; i < fluxSize; i++) {
     Real responseWavelength = 2. * CONST_HC_KEV_A / (energy[i] + energy[i+1]); 
     size_t j = BinarySearch (kappaWavelength, responseWavelength);
+    Real TauStar = rhoRstar * kappa[j];
+    size_t k = BinarySearch (TransmissionTauStar, TauStar);
+    size_t l = BinarySearch (TransmissionKappaRatio, kappaRatio[j]);
+    size_t m = k * ax1 + l;
+    /* I verified the array indexing, but it would be better for it to
+     be built in somehow. */
+    flux[i] = Transmission2D[m]; 
+  }
+  return;
+}
+
+void windtab4 (const RealArray& energy, RealArray& flux, Real rhoRstar,
+               RealArray abundances)
+{
+
+  RealArray kappa;
+  RealArray kappaHeII;
+  RealArray kappaEnergy;
+  
+  // load kappa - 2D table by Z; weight by abundances
+  // this is a singleton container object
+  KappaData& theKappaData = KappaData::instance ();
+  // check if we need to load a new file:
+  theKappaData.refreshData ();
+  // make sure the data are valid
+  bool Kstatus = theKappaData.checkStatus ();
+  if (!Kstatus) {
+    cerr << "windtab3: Problem with kappa file." << endl;
+    return;
+  }
+  // get data from container
+  kappa = theKappaData.getKappaVV (abundances, false);
+  kappaEnergy = theKappaData.getEnergyVV ();
+  // get HeII data (only HeII, add to kappa to get total opacity)
+  kappaHeII = theKappaData.getKappaVV (abundances, true);
+  // calculate ratio
+  RealArray kappaRatio (kappa.size ());
+  kappaRatio = (kappaHeII / kappa) + 1.;
+  
+  
+  // Write out a file with kappa, given the abundances.
+  // But only if SAVEKAPPAZ is set to 1
+  if (getXspecVariable ("SAVEKAPPAZ", "0") == "1") {
+    string kappaOutFilename = getXspecVariable ("KAPPAZOUTFILE",    \
+                                                "kappaZ.txt");
+    writeKappaZHeII (kappa, kappaHeII, kappaEnergy, kappaOutFilename);
+  }
+
+  // load optical depth and transmission
+
+
+  /* Load 2D transmission from single container object */
+  TransmissionData2D& theTransmissionData2D = TransmissionData2D::instance ();
+  RealArray TransmissionTauStar = theTransmissionData2D.getTauStar ();
+  RealArray TransmissionKappaRatio = theTransmissionData2D.getKappaRatio ();
+  RealArray Transmission2D = theTransmissionData2D.getTransmission ();
+  size_t ax1 = theTransmissionData2D.getAx1 ();
+
+
+  /* Now that everything is loaded:
+     calculate taustar and kapparatio for each energy;
+     look up transmission 2d for those values and assign. */
+  size_t fluxSize = flux.size ();
+  for (size_t i = 0; i < fluxSize; i++) {
+    //Real responseWavelength = 2. * CONST_HC_KEV_A / (energy[i] + energy[i+1]);
+    Real centerEnergy = (energy[i] + energy[i+1]) / 2.;
+    size_t j = BinarySearch (kappaEnergy, centerEnergy);
     Real TauStar = rhoRstar * kappa[j];
     size_t k = BinarySearch (TransmissionTauStar, TauStar);
     size_t l = BinarySearch (TransmissionKappaRatio, kappaRatio[j]);
@@ -352,6 +429,26 @@ void writeKappaZ (const RealArray& kappa, const RealArray& kappaEnergy,\
   else cout << "Unable to open file" << endl;
   return;
 }
+
+void writeKappaZHeII (const RealArray& kappa, const RealArray& kappaHeII, \
+                      const RealArray& kappaEnergy, \
+                      const string& kappaOutFilename)
+{
+  ofstream fileHandle (kappaOutFilename.c_str());
+  if (fileHandle.is_open())
+    {
+      size_t n = kappa.size ();
+      for(size_t i = 0; i < n; i++){
+        fileHandle << kappaEnergy[i] << "\t" << kappa[i] << "\t" << kappaHeII[i] << "\n";
+      }
+      fileHandle.close();
+    }
+  else cout << "Unable to open file" << endl;
+  return;
+}
+
+
+
 
 // ------------ Wrappers for isis ----------------
 

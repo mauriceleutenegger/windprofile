@@ -35,7 +35,7 @@ class KappaData
   const RealArray getWavelength ();
   const RealArray getKappaHeII ();
   const RealArray getWavelengthHeII ();
-  const RealArray getKappaVV (RealArray RelativeAbundances);
+  const RealArray getKappaVV (RealArray RelativeAbundances, bool doHeII=false);
   const RealArray getEnergyVV ();
   Real getMu ();
   Real getMuHeII ();
@@ -61,6 +61,7 @@ class KappaData
   // itsKappaZ will be a 1D representation of a 2D array
   // with dimensions itsAx1, itsAx2
   RealArray itsEnergyZ;
+  RealArray itsKappaZ_HeII; // initialized as empty
   const size_t itsNZ;
   size_t itsNEnergiesZ;
   RealArray itsAtomicNumber;
