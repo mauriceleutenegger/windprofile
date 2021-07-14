@@ -25,7 +25,7 @@ file with opacities split by element (for variable abundance)
 TRANSMISSIONFILENAME   tau_transmission.fits
 file with tabulated transmission vs tau
 
-TRANSMISSION2DFILENAME tau_transmission_HeII.fits
+TRANSMISSIONFILENAME2D tau_transmission_HeII.fits
 file with tabulated transmission vs both tau and kapparatio
 
 HEII
