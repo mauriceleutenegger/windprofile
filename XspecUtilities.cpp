@@ -24,7 +24,9 @@
 
 #include "XspecUtilities.h"
 //#include <XSUtil/FunctionUtils/FunctionUtility.h>
-#include <FunctionUtility.h>
+//#include <FunctionUtility.h>
+#include <XSFunctions/Utilities/FunctionUtility.h>
+#include <XSFunctions/functionMap.h>
 
 using namespace std;
 

@@ -26,7 +26,9 @@
 #include "LoadWindAbsorptionTables.h"
 #include "XspecUtilities.h"
 //#include "xsFortran.h"
-#include "FunctionUtility.h"
+//#include "FunctionUtility.h"
+#include <XSFunctions/Utilities/FunctionUtility.h>
+#include <XSFunctions/functionMap.h>
 
 // Uncomment this for debugging output
 //#define LOADWINDABSTBLS_DEBUG 1
