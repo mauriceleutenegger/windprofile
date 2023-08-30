@@ -21,7 +21,8 @@
 """
 
 import numpy as np
-import pyfits as pf
+#import pyfits as pf
+import astropy.io.fits as pf
 import os
 # Because python only looks in ~/lib/python
 HomePath = os.path.expanduser ("~")
@@ -66,7 +67,7 @@ isRosseland = 0
 for k in kappaRatio :
     transmission = windabsorption.WindAbsorptionHeII_Fixed_Kappa (taustar, k, q, u0, beta, h, isNumerical, isAnisotropic, isRosseland)
     outfile = 'tau_transmission_HeII_kappa_' + str (k) + '.txt'
-    print outfile
+    print (outfile)
     np.savetxt (outfile, transmission)
 # taustar is an array, (q, u0, beta, h) are scalars, the rest are (bool) int
 #print transmission.shape

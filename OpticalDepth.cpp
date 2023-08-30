@@ -48,9 +48,9 @@ const Real OpticalDepth::MINIMUM_VELOCITY = 0.001;
 OpticalDepth::OpticalDepth 
 (Real TauStar, Real h, Real beta, bool numerical, bool anisotropic, 
  bool prolate, bool rosseland, bool expansion, bool HeII)
-  : isNumerical (numerical), itsVelocity (NULL), itsPorosity (NULL),
-    itsAnalyticOpticalDepth (NULL), itsNumericalOpticalDepth (NULL),
-    isHeII (HeII)
+  : isNumerical (numerical), isHeII (HeII),
+    itsVelocity (NULL), itsPorosity (NULL),
+    itsAnalyticOpticalDepth (NULL), itsNumericalOpticalDepth (NULL)
 {
   /* 
      need to save information on h if tauclump is to be varied! 

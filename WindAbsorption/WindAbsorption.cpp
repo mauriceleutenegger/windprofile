@@ -37,16 +37,16 @@
 #include "../AngleAveragedTransmission.h"
 #include "../OpticalDepth.h"
 #include "../Utilities.h"
-#include <gsl/gsl_const_cgsm.h>
+
 #include <fstream>
 #include <sstream>
 #include <iostream>
 
 #include "Python.h"
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+// the above line checks for deprecated numpy macros
 #include "numpy/arrayobject.h"
 
-static const Real CONST_HC_KEV_A = GSL_CONST_CGSM_PLANCKS_CONSTANT_H * 
-    GSL_CONST_CGSM_SPEED_OF_LIGHT * 1.e5 / GSL_CONST_CGSM_ELECTRON_VOLT;
 
  // arguments are: 
  // q, u0, beta, h, isNumerical, isAnisotropic, isRosseland, taustar[]
@@ -58,6 +58,8 @@ static PyObject* Py_WindAbsorption (PyObject* obj, PyObject* args)
   // pyobjects; taustar is input array, transmission is output array
   PyObject *oTAUSTAR;
   PyArrayObject *Taustar = NULL, *Transmission = NULL;
+  // data type for output arrays: float64
+  PyArray_Descr *out_descriptor = PyArray_DescrFromType(NPY_FLOAT64);
   // preset arguments
   Real q (0.);
   Real u0 (0.5);
@@ -80,15 +82,16 @@ static PyObject* Py_WindAbsorption (PyObject* obj, PyObject* args)
   Taustar = (PyArrayObject*) PyArray_ContiguousFromAny
     (oTAUSTAR, NPY_FLOAT64, 1, 1);
   if (!Taustar) goto _fail; 
-  Tsize = Taustar->dimensions[0];
+  Tsize = *PyArray_DIMS(Taustar);
   // and make an output array object with same size
-  Transmission = (PyArrayObject*) PyArray_FromDims
-    (1, (int*) &Tsize, NPY_FLOAT64);
+  Transmission = (PyArrayObject*) PyArray_Zeros
+    (1, (npy_intp*) &Tsize, out_descriptor, 0);
   if (!Transmission) goto _fail; 
   // for your protection
   {
-    Real* Taustar_Carray = (npy_float64*) Taustar->data;
-    Real* Transmission_Carray = (npy_float64*) Transmission->data;
+    Real* Taustar_Carray = (npy_float64*) PyArray_GETPTR1(Taustar, 0);
+    Real* Transmission_Carray =
+      (npy_float64*) PyArray_GETPTR1 (Transmission, 0);
 
    // calculate answer; protected from goto by braces
     Velocity* V;
@@ -136,6 +139,8 @@ static PyObject* Py_WindAbsorptionHeII (PyObject* obj, PyObject* args)
   // pyobjects; taustar is input array, transmission is output array
   PyObject *oKAPPARATIO;
   PyArrayObject *kappaRatio = NULL;
+  // data type for output arrays: float64
+  PyArray_Descr *out_descriptor = PyArray_DescrFromType(NPY_FLOAT64);
   // preset arguments
   Real q (0.);
   Real u0 (0.5);
@@ -160,17 +165,17 @@ static PyObject* Py_WindAbsorptionHeII (PyObject* obj, PyObject* args)
   Taustar = (PyArrayObject*) PyArray_ContiguousFromAny
     (oTAUSTAR, NPY_FLOAT64, 1, 1);
   if (!Taustar) goto _fail; 
-  Tsize = Taustar->dimensions[0];
+  Tsize = *PyArray_DIMS(Taustar);
  // make array object from python numpy array
   kappaRatio = (PyArrayObject*) PyArray_ContiguousFromAny
     (oKAPPARATIO, NPY_FLOAT64, 1, 1);
   if (!kappaRatio) goto _fail; 
-  Ksize = kappaRatio->dimensions[0];
+  Ksize = *PyArray_DIMS(kappaRatio);
   TrSize[0] = Tsize;
   TrSize[1] = Ksize;
   // and make a 2D output array object with correct size
-  Transmission = (PyArrayObject*) PyArray_FromDims
-    (2, (int*) &TrSize, NPY_FLOAT64);
+  Transmission = (PyArrayObject*) PyArray_Zeros
+    (2, (npy_intp*) &TrSize, out_descriptor, 0);
   if (!Transmission) goto _fail; 
   // for your protection
   {
@@ -182,10 +187,10 @@ static PyObject* Py_WindAbsorptionHeII (PyObject* obj, PyObject* args)
     int nrows, ncols;
     int datatype = NPY_FLOAT64;
     PyArray_As2D (op, (char ***) &result, &nrows, &ncols, datatype);
-
-    Real* Taustar_Carray = (npy_float64*) Taustar->data;
-    Real* kappaRatio_Carray = (npy_float64*) kappaRatio->data;
-    //    Real* Transmission_Carray = (npy_float64*) Transmission->data;
+    Real* Taustar_Carray = (npy_float64*) PyArray_GETPTR1(Taustar, 0);
+    Real* kappaRatio_Carray =
+      (npy_float64*) PyArray_GETPTR1 (kappaRatio, 0);
+    
 
    // calculate answer; protected from goto by braces
     Velocity* V;
@@ -194,7 +199,7 @@ static PyObject* Py_WindAbsorptionHeII (PyObject* obj, PyObject* args)
     AngleAveragedTransmission* T;
     IntegratedLuminosity* L;
     V = new Velocity (beta, 0.);
-    bool isHeII = false; // fixed for now
+    //bool isHeII = false; // fixed for now
     Tau = new OpticalDepth (0., h , beta, (bool) isNumerical, (bool) isAnisotropic, (bool) isRosseland, false, false);
     TauHeII = new OpticalDepth (0., h , beta, true, (bool) isAnisotropic, (bool) isRosseland, false, true);
     T = new AngleAveragedTransmission (Tau, TauHeII, 0.); 
@@ -251,8 +256,8 @@ static PyObject* Py_WindAbsorptionHeII_Fixed_Kappa
   int isRosseland (0);
   // declare variables
   size_t Tsize = 0;
-  size_t Ksize = 0;
-  size_t TrSize[2] = {0, 0};
+  //size_t Ksize = 0;
+  //size_t TrSize[2] = {0, 0};
   // get arguments from python
   if (!PyArg_ParseTuple 
       (args, "Odddddiii", &oTAUSTAR, &kappaRatio, &q, &u0, &beta, &h,
@@ -266,7 +271,7 @@ static PyObject* Py_WindAbsorptionHeII_Fixed_Kappa
   Taustar = (PyArrayObject*) PyArray_ContiguousFromAny
     (oTAUSTAR, NPY_FLOAT64, 1, 1);
   if (!Taustar) goto _fail; 
-  Tsize = Taustar->dimensions[0];
+  Tsize = *PyArray_DIMS(Taustar);
   // and make an output array object with same size
   Transmission = (PyArrayObject*) PyArray_FromDims
     (1, (int*) &Tsize, NPY_FLOAT64);
@@ -280,10 +285,12 @@ static PyObject* Py_WindAbsorptionHeII_Fixed_Kappa
     //    int datatype = NPY_FLOAT64;
     //    PyArray_As2D (op, (char ***) &result, &nrows, &ncols, datatype);
 
-    Real* Taustar_Carray = (npy_float64*) Taustar->data;
-    //    Real* kappaRatio_Carray = (npy_float64*) kappaRatio->data;
-    Real* Transmission_Carray = (npy_float64*) Transmission->data;
+    Real* Taustar_Carray = (npy_float64*) PyArray_GETPTR1(Taustar, 0);
+    Real* Transmission_Carray =
+      (npy_float64*) PyArray_GETPTR1 (Transmission, 0);
+   
 
+    
    // calculate answer; protected from goto by braces
     Velocity* V;
     OpticalDepth* Tau;
@@ -291,7 +298,7 @@ static PyObject* Py_WindAbsorptionHeII_Fixed_Kappa
     AngleAveragedTransmission* T;
     IntegratedLuminosity* L;
     V = new Velocity (beta, 0.);
-    bool isHeII = false; // fixed for now
+    //bool isHeII = false; // fixed for now
     Tau = new OpticalDepth (0., h , beta, (bool) isNumerical, (bool) isAnisotropic, (bool) isRosseland, false, false);
     TauHeII = new OpticalDepth (0., h , beta, true, (bool) isAnisotropic, (bool) isRosseland, false, true);
     T = new AngleAveragedTransmission (Tau, TauHeII, 0.); 
@@ -359,15 +366,14 @@ static PyObject* Py_FractionalWindEmission (PyObject* obj, PyObject* args)
  // make array object from python numpy array
   u = (PyArrayObject*) PyArray_ContiguousFromAny (oU, NPY_FLOAT64, 1, 1);
   if (!u) goto _fail; 
-  Fsize = u->dimensions[0];
+  Fsize = *PyArray_DIMS(u);
   // and make an output array object with same size
   Flux = (PyArrayObject*) PyArray_FromDims (1, (int*) &Fsize, NPY_FLOAT64);
   if (!Flux) goto _fail; 
   // for your protection
   {
-    Real* U_Carray = (npy_float64*) u->data;
-    Real* Flux_Carray = (npy_float64*) Flux->data;
-
+    Real* U_Carray = (npy_float64*) PyArray_GETPTR1(u, 0);
+    Real* Flux_Carray = (npy_float64*) PyArray_GETPTR1 (Flux, 0);
    // calculate answer; protected from goto by braces
     Velocity* V;
     OpticalDepth* Tau;
@@ -437,16 +443,16 @@ static PyObject* Py_AngleAveragedTransmission (PyObject* obj, PyObject* args)
   u = (PyArrayObject*) PyArray_ContiguousFromAny
     (oU, NPY_FLOAT64, 1, 1);
   if (!u) goto _fail; 
-  Tsize = u->dimensions[0];
+  Tsize = *PyArray_DIMS(u);
   // and make an output array object with same size
   Transmission = (PyArrayObject*) PyArray_FromDims
     (1, (int*) &Tsize, NPY_FLOAT64);
   if (!Transmission) goto _fail; 
   // for your protection
   {
-    Real* u_Carray = (npy_float64*) u->data;
-    Real* Transmission_Carray = (npy_float64*) Transmission->data;
-
+    Real* u_Carray = (npy_float64*) PyArray_GETPTR1(u, 0);
+    Real* Transmission_Carray =
+      (npy_float64*) PyArray_GETPTR1 (Transmission, 0);
     // calculate answer; protected from goto by braces
     //    Velocity* V;
     OpticalDepth* Tau;
@@ -497,7 +503,37 @@ static PyMethodDef windabsorptionMethods[] = {
   {NULL, NULL, 0, NULL} /* Sentinel */
 };
 
+#if PY_MAJOR_VERSION >= 3
+/*
+  This structure defines the module, and makes use of the methods structure.
+ */
+static struct PyModuleDef windabsorptionDef =
+{
+    PyModuleDef_HEAD_INIT,
+    "windabsorption", /* name of module */
+    "",          /* module documentation, may be NULL */
+    -1,          /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
+    windabsorptionMethods
+};
+
+/*
+  This function creates the module using the module structure.
+ */
+PyMODINIT_FUNC PyInit_windabsorption(void)
+{
+  PyObject *module;
+  module = PyModule_Create(&windabsorptionDef);
+  if(module==NULL) return NULL;
+  /* IMPORTANT: this must be called */
+  import_array();
+  if (PyErr_Occurred()) return NULL;
+  return module;
+}
+
+# else
+// This is the py2.7 way
 PyMODINIT_FUNC initwindabsorption (void)
 {
   import_array () (void) Py_InitModule ("windabsorption", windabsorptionMethods);
 }
+#endif

@@ -19,6 +19,6 @@ Finally plot_windtabs.py will take the output of the previous two scripts and
 plot them for comparison.
 
 Requirements:
-python2.5
+python3.X
 numpy
-pyfits
+pyfits (now astropy.io.fits)

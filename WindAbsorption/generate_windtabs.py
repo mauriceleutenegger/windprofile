@@ -21,13 +21,13 @@
 """
 
 import numpy as np
-import pyfits as pf
+import astropy.io.fits as pf
 import os
 # Because python only looks in ~/lib/python
 HomePath = os.path.expanduser ("~")
 WindAbsorptionPath = os.path.join (HomePath, 'lib/python/windabsorption')
 import sys
-sys.path.append (WindAbsorptionPath)
+#sys.path.append (WindAbsorptionPath) # changed to install in main distro
 import windabsorption
 #WindAbsorption
 
@@ -42,12 +42,17 @@ taustar = np.concatenate ([taustar01, taustarE0E3])
 
 # parameters
 q = 0.
-u0 = 2./3.
+r0 = 3./2.
+#r0 = 1.7
+u0 = 1. / r0
 beta = 1.
 h = 0.
 isNumerical = 0
 isAnisotropic = 0
 isRosseland = 0
+outfile = 'tau_transmission.fits'
+#outfile = 'tau_transmission_R0_1.7.fits'
+
 
 # calculate transmission
 transmission = windabsorption.WindAbsorption (taustar, q, u0, beta, h, isNumerical, isAnisotropic, isRosseland)
@@ -60,6 +65,13 @@ transmissionCol = pf.Column (name='transmission', format='E', array=transmission
 
 columns = pf.ColDefs ([tauCol, transmissionCol])
 
-tableHDU = pf.new_table (columns)
+#tableHDU = pf.new_table (columns) # deprecated
+tableHDU = pf.BinTableHDU.from_columns (columns)
+tableHDU.header['q'] = q
+tableHDU.header['u0'] = u0
+tableHDU.header['r0'] = r0
+tableHDU.header['beta'] = beta
+tableHDU.header['h'] = h
+tableHDU.name = 'tau_transmission'
 
-tableHDU.writeto ('tau_transmission.fits')
+tableHDU.writeto (outfile)
