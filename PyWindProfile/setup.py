@@ -3,23 +3,24 @@
 import numpy
 
 sourceFileList = ['PyWindProfile/PyWindProfile.cpp',\
-               '../Gaussian.cpp',\
-               '../Utilities.cpp',\
-               '../OpticalDepth.cpp',\
-               '../Porosity.cpp',\
-               '../AnalyticOpticalDepth.cpp',\
-               '../SmoothA1.cpp',\
-               '../IsotropicSeries.cpp',\
-               '../Series.cpp',\
-               '../NumericalOpticalDepth.cpp',\
-               '../NumericalOpticalDepthU.cpp',\
-               '../NumericalOpticalDepthZ.cpp',\
-               '../mal_Integration.cpp',\
-               '../Lx.cpp',\
-               '../ResonanceScattering.cpp',\
-               '../HeLikeRatio.cpp',\
-               '../mal_RootFinderNewton.cpp',\
-               '../UxRoot.cpp']
+                  '../Gaussian.cpp',\
+                  '../Utilities.cpp',\
+                  '../OpticalDepth.cpp',\
+                  '../Porosity.cpp',\
+                  '../AnalyticOpticalDepth.cpp',\
+                  '../SmoothA1.cpp',\
+                  '../IsotropicSeries.cpp',\
+                  '../Series.cpp',\
+                  '../NumericalOpticalDepth.cpp',\
+                  '../NumericalOpticalDepthU.cpp',\
+                  '../NumericalOpticalDepthZ.cpp',\
+                  '../RAD_OpticalDepth.cpp',\
+                  '../mal_Integration.cpp',\
+                  '../Lx.cpp',\
+                  '../ResonanceScattering.cpp',\
+                  '../HeLikeRatio.cpp',\
+                  '../mal_RootFinderNewton.cpp',\
+                  '../UxRoot.cpp']
 
 libraryDirList = ['/opt/local/lib/']
 libraryNameList = ['gsl','gslcblas']

@@ -28,6 +28,7 @@
 #include "xsTypes.h"
 #include "../../OpticalDepth.h"
 #include "../../Lx.h"
+#include "../../RAD_OpticalDepth.h"
 
 static PyObject* Py_OpticalDepth (PyObject* obj, PyObject* args)
 {
@@ -151,6 +152,38 @@ static PyObject* Py_OpticalDepth2d (PyObject* obj, PyObject* args)
   return NULL;
 }
 
+static PyObject* Py_RAD_OpticalDepth (PyObject* obj, PyObject* args)
+{
+  Real p = 0.;
+  Real z = 0.;
+  Real Tau0 = 0.;
+  Real beta = 1.;
+  Real deltaE = 0.;
+  Real gamma = 0.;
+  Real vinfty = 0.;
+  Real tau = 1.e6;
+  Velocity* V = NULL;
+  // THERE IS PROBABLY A BUG HERE
+  if (!PyArg_ParseTuple (args, "ddddddd", &p, &z, &Tau0, &beta, 
+			 &deltaE, &gamma, &vinfty)) {
+    PyErr_SetString (PyExc_ValueError, 
+		     "RAD_OpticalDepth: Invalid number of parameters.");
+    return NULL;
+  }
+
+  /* declare velocity object */
+  V = new Velocity (beta, 0.);
+  /* declare OpticalDepth object with parameters */
+  RAD_OpticalDepth TAU (V, deltaE, gamma, Tau0, vinfty);
+
+  tau = TAU.getOpticalDepth (p, z);
+
+  delete V;
+  V = NULL;
+  
+  return Py_BuildValue ("d", tau);
+  
+}
 
 static PyObject* Py_Lx (PyObject* obj, PyObject* args)
 {
@@ -287,6 +320,8 @@ static PyObject* Py_Lx (PyObject* obj, PyObject* args)
 static PyMethodDef PyWindProfileMethods[] = {
   {"OpticalDepth", Py_OpticalDepth, METH_VARARGS, "Calculate t(p,z), scalar"},
   {"OpticalDepth2d", Py_OpticalDepth2d, METH_VARARGS, "Calculate t(p,z), 2d"},
+  {"RAD_OpticalDepth", Py_RAD_OpticalDepth, METH_VARARGS,
+   "Calculate RAD t(p,z)"},
   {"Lx", Py_Lx, METH_VARARGS, "Calculate Lx(x)"},
   {NULL, NULL, 0, NULL} /* Sentinel */
 };
