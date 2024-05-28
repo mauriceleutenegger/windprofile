@@ -6,7 +6,7 @@ import matplotlib.pyplot as pl
 import PyWindProfile as wp
 
 #p = np.arange (1.01,3.,0.01)
-p = np.arange (1.01,3.,1.)
+p = np.arange (1.01,3.1,1.)
 z = np.arange (-10.0, 10.001, 0.001)
 
 #tau0 = 1.0
@@ -25,10 +25,10 @@ tscalar = np.zeros ((p.size, z.size))
 for i in range (p.size) :
     for j in range (z.size) :
         tscalar[i,j] =  wp.RAD_OpticalDepth (p[i], z[j], tau0, beta,
-                                             deltaE, gamma, vinfty)
+                                             deltaE, gammaE, vinfty)
 
 #itest = 99
-itest = 1
+itest = 0
 
 print (p[itest])
 
@@ -36,4 +36,4 @@ pl.semilogy (z, tscalar[itest,:], label='p={}'.format (p[itest]))
 pl.xlabel ('z')
 pl.ylabel ('t')
 pl.legend ()
-pl.savefig ('RAD_t_p2.png')
+pl.savefig ('RAD_t_p1.png')

@@ -185,6 +185,88 @@ static PyObject* Py_RAD_OpticalDepth (PyObject* obj, PyObject* args)
   
 }
 
+// edit me
+// add a zarray input and return an array
+static PyObject* Py_RAD_OpticalDepth_integrand (PyObject* obj, PyObject* args)
+{
+  PyObject *oZ = NULL;
+  PyArrayObject *z = NULL, *integrand = NULL;
+  Real p = 0.;
+  Real z0 = 0.;
+  Real Tau0 = 1.; // dummy
+  Real beta = 1.;
+  Real deltaE = 0.;
+  Real gamma = 0.;
+  Real vinfty = 0.;
+  //Real tau = 1.e6;
+  Velocity* V = NULL;
+
+  npy_intp zsize = 0;
+  // set up descriptor for array allocation
+  PyArray_Descr *integrand_descriptor = PyArray_DescrFromType(NPY_FLOAT64);
+  
+  // THERE IS PROBABLY A BUG HERE
+  if (!PyArg_ParseTuple (args, "Odddddd", &oZ, &p, &z0, &beta, 
+			 &deltaE, &gamma, &vinfty)) {
+    PyErr_SetString (PyExc_ValueError, 
+		     "RAD_OpticalDepth: Invalid number of parameters.");
+    return NULL;
+  }
+
+  // make array objects from python numpy arrays
+  z = (PyArrayObject*) PyArray_ContiguousFromAny
+    (oZ, NPY_FLOAT64, 1, 1);
+  if (!z) {
+    PyErr_SetString (PyExc_ValueError,
+                     "Py_OpticalDepth2d: Failed to allocate z array.");
+    goto _fail;
+  }
+
+  // get array dimension
+  zsize = PyArray_DIM (z, 0);
+
+  // and make an integrand array object with same size as z
+  integrand = (PyArrayObject*) PyArray_Zeros
+    (1, &zsize, integrand_descriptor, 0);
+  if (!integrand) {
+    PyErr_SetString (PyExc_ValueError,
+                     "RAD_OpticalDepth_integrand: Failed to allocate integrand array.");
+    goto _fail;
+  }
+
+  { // braces protect objects from goto
+    /* declare velocity object */
+    V = new Velocity (beta, 0.);
+    /* declare OpticalDepth object with parameters */
+    RAD_OpticalDepth TAU (V, deltaE, gamma, Tau0, vinfty);
+
+    TAU.initialize (p,z0);
+
+    // get integrand
+    /*
+      Here we use GETPTR1 to return a void* pointer to the array at element i;
+      this must then be cast to npy_float64* so we know the type;
+      and then the whole thing must be dereferenced to get the actual value.
+    */
+    for (npy_intp i = 0; i < zsize; i++) {
+      *((npy_float64*) PyArray_GETPTR1 (integrand, i)) =
+        TAU.integrand (*((npy_float64*) PyArray_GETPTR1 (z, i)));
+    }
+  
+    delete V;
+    V = NULL;
+
+  } // end protect goto
+  
+  Py_DECREF (z);
+  return PyArray_Return (integrand);
+
+   _fail:
+  Py_XDECREF (z);
+  Py_XDECREF (integrand);
+  return NULL;
+}
+
 static PyObject* Py_Lx (PyObject* obj, PyObject* args)
 {
   // pyobjects
@@ -322,6 +404,8 @@ static PyMethodDef PyWindProfileMethods[] = {
   {"OpticalDepth2d", Py_OpticalDepth2d, METH_VARARGS, "Calculate t(p,z), 2d"},
   {"RAD_OpticalDepth", Py_RAD_OpticalDepth, METH_VARARGS,
    "Calculate RAD t(p,z)"},
+  {"RAD_OpticalDepth_integrand", Py_RAD_OpticalDepth_integrand, METH_VARARGS,
+   "Calculate RAD integrand (p,z0) on z array"},
   {"Lx", Py_Lx, METH_VARARGS, "Calculate Lx(x)"},
   {NULL, NULL, 0, NULL} /* Sentinel */
 };

@@ -35,6 +35,8 @@ class RAD_OpticalDepth : public Integral {
 		    Real Vinfty); // constructor
   //~RAD_OpticalDepth (); // destructor
   Real getOpticalDepth (Real p, Real z);
+  void initialize (Real p, Real z); // setup to manually call integrand
+  // initialize is also called by getOpticalDepth
   double integrand (double z);
  private:
   // add the characteristic optical depth as a parameter

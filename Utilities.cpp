@@ -37,9 +37,16 @@ int compare (Real a, Real b)
   return gsl_fcmp (a, b, DBL_EPSILON);
 }
 
+Real uPZ (Real p, Real z)
+{
+  return (1. / hypot (z, p));
+}
+
 Real muPZ (Real p, Real z)
 {
-  return (z / hypot (z, p));
+  //return (z / hypot (z, p));
+  Real u = uPZ (p, z);
+  return z * u;
 }
 
 bool isOcculted (Real p, Real z)

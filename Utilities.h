@@ -36,6 +36,7 @@ Ne3F, Ne3G, NeM2, facNe3F, facNe3G, facNeM2};
 /* Not sure what the difference is between the FAC and non-FAC types; I think that does something in Gabe's part of the code. */
 
 int compare (Real a, Real b);
+Real uPZ (Real p, Real z);
 Real muPZ (Real p, Real z);
 bool isOcculted (Real p, Real z);
 bool badCoordinates (Real p, Real z);

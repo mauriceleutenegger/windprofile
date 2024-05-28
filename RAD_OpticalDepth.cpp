@@ -30,8 +30,9 @@ RAD_OpticalDepth::RAD_OpticalDepth (Velocity* V, Real DeltaE, Real Gamma,
 				    Real Tau0, Real Vinfty) :
   Integral (),
   itsP (0.), itsZ0 (0.0), itsMu0 (0.0), itsU0 (0.0), itsW0 (0.0), itsWz0 (0.0),
-  itsVelocity (V),
-  itsDeltaE (DeltaE), itsGamma (Gamma), itsTau0 (Tau0), itsVinfty (Vinfty)
+  itsDeltaE (DeltaE), itsGamma (Gamma), itsTau0 (Tau0), itsVinfty (Vinfty),
+  itsVelocity (V)
+
 {
   // need to check how vinfty, gamma, deltaE are passed to this function
   return;
@@ -39,24 +40,33 @@ RAD_OpticalDepth::RAD_OpticalDepth (Velocity* V, Real DeltaE, Real Gamma,
 
 Real RAD_OpticalDepth::getOpticalDepth (Real p, Real z)
 {
-  itsP = p;
-  itsZ0 = z; // starting z for integral
-  itsMu0 = muPZ (itsP, itsZ0); // starting mu for integral
-  itsU0 = hypot (itsP, itsZ0);
-  itsW0 = itsVelocity->getVelocity (itsU0);
-  itsWz0 = itsW0 * itsMu0;
+  initialize (p, z);
   return itsTau0 * qagiu (z);
 
 }
 
+void RAD_OpticalDepth::initialize (Real p, Real z)
+{
+  itsP = p;
+  itsZ0 = z; // starting z for integral
+  itsU0 = uPZ (itsP, itsZ0);
+  itsMu0 = muPZ (itsP, itsZ0); // starting mu for integral
+  //itsU0 = hypot (itsP, itsZ0);
+  itsW0 = itsVelocity->getVelocity (itsU0);
+  itsWz0 = itsW0 * itsMu0;
+  return;
+}
+
 double RAD_OpticalDepth::integrand (double z)
 {
-  double u = 1. / hypot (itsP, z);
+  //double u = 1. / hypot (itsP, z);
+  double u = uPZ (itsP, z);
   double w = itsVelocity->getVelocity (u);
   double mu = muPZ (itsP, z);
   double wz = mu * w;
   double deltaw = wz - itsWz0; //
-  double x = itsDeltaE + (1.0 - itsDeltaE) * (wz - itsWz0) * itsVinfty;
+  //double x = itsDeltaE + (1.0 - itsDeltaE) * (wz - itsWz0) * itsVinfty;
+  double x = itsDeltaE + (1.0 - itsDeltaE) * deltaw * itsVinfty;
   double phi = gsl_ran_cauchy_pdf (x, itsGamma/2.);
   // width arg of cauchy is HWHM
   double answer = (u*u / w) * phi; // density * line profile
