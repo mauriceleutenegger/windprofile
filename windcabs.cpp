@@ -71,7 +71,8 @@ void windcabs
   // get data from container
   RealArray kappa = theKappaData.getKappa ();
   RealArray kappaWavelength = theKappaData.getWavelength ();
-  Real mu = theKappaData.getMu ();
+  //Real mu = theKappaData.getMu ();
+  // apparently I'm not using mu anywhere? so comment it out
   
   // -------------- Calculate transmission -------------------
 

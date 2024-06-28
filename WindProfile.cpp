@@ -34,8 +34,10 @@ WindProfile::WindProfile
     itsModelType (type), itsWindParameter (NULL), itsFluxIntegral (NULL),
     itsLx (NULL), itsVelocity (NULL), itsHeLikeRatio (NULL),
     itsResonanceScattering (NULL), itsOpticalDepth (NULL),
-    //    itsNumericalOpticalDepth (NULL), 
-    itsPorosity (NULL), itsTotal (0.), 
+    //    itsNumericalOpticalDepth (NULL),
+    itsPorosity (NULL),
+    itsRAD_OpticalDepth (NULL),
+    itsTotal (0.), 
     isFinite (false), isNumerical (false)
 {
   allocateWindParameter (parameter);
@@ -75,10 +77,18 @@ void WindProfile::allocateClasses ()
     (itsResonanceScattering, itsVelocity);
   itsWindParameter->initializeOpticalDepth (itsOpticalDepth, 
 					    itsOpticalDepthHeII);
+  if (itsModelType == rad) {
+    itsWindParameter->initializeRAD_OpticalDepth (itsRAD_OpticalDepth,
+						 itsVelocity);
+  }
   if (isHeII) {
     itsWindParameter->initializeLx (itsLx, itsVelocity, itsHeLikeRatio, 
 				    itsResonanceScattering, itsOpticalDepth,
 				    itsOpticalDepthHeII);
+  } else if (itsModelType == rad) {
+    itsWindParameter->initializeLx (itsLx, itsVelocity, itsHeLikeRatio, 
+				    itsResonanceScattering, itsOpticalDepth,
+				    itsRAD_OpticalDepth);
   } else {
     itsWindParameter->initializeLx (itsLx, itsVelocity, itsHeLikeRatio, 
 				    itsResonanceScattering, itsOpticalDepth);
@@ -118,6 +128,7 @@ void WindProfile::freeClasses ()
 void WindProfile::getModelFlux (RealArray& flux) 
 {
   flux.resize (itsFluxSize);
+  Real RADeff = 1.;
   if (itsModelType == helike) {
     RealArray rFlux (itsFluxSize);
     RealArray iFlux (itsFluxSize);
@@ -130,10 +141,24 @@ void WindProfile::getModelFlux (RealArray& flux)
     }
     Real G = itsWindParameter->getG ();
     flux = (rFlux + G * (iFlux + fFlux)) / (1. + G);
+  } else if (itsModelType == rad) {
+    RealArray noRADflux (itsFluxSize);
+    getOneFlux (flux);
+    itsLx->setRADTransparent ();
+    getOneFlux (noRADflux);
+    itsLx->notRADTransparent ();
+    Real noRADflux_sum = noRADflux.sum ();
+    if (compare (noRADflux_sum, 0.) == 1) {
+      RADeff = flux.sum () / noRADflux.sum ();
+    }
   } else {
     getOneFlux (flux);
   }
   renormalize (flux);
+  if (itsModelType == rad) {
+    flux *= RADeff;
+    cout << "RAD transmitted fraction: " << RADeff << endl;
+  }
   if (isFinite && itsWindParameter->getVerbosity () && 
       (itsModelType != helike)) {
     TransmissionRatio (x);

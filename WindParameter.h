@@ -33,9 +33,10 @@
 #include "ResonanceScattering.h"
 #include "Lx.h"
 #include "AtomicParameters.h"
+#include "RAD_OpticalDepth.h"
 
 //enum ModelType {general, hlike, helike, opticaldepth, profile, absorption};
-enum ModelType {general, hlike, helike, absorption};
+enum ModelType {general, hlike, helike, absorption, rad};
 /* I think that "opticaldepth" and "profile" were model types 
    which were only used in the deprecated IDL interface */
 
@@ -69,6 +70,10 @@ class WindParameter
   void initializeLx (Lx*& lx, Velocity* V, HeLikeRatio* He, 
 		     ResonanceScattering* RS, OpticalDepth* Tau, 
 		     OpticalDepth* TauHeII); // For He II recombination.
+  void initializeLx (Lx*& lx, Velocity* V, HeLikeRatio* He, 
+		     ResonanceScattering* RS, OpticalDepth* Tau,
+		     RAD_OpticalDepth* RAD_Tau);
+  void initializeRAD_OpticalDepth (RAD_OpticalDepth*& RAD_Tau, Velocity* V);
   void dump (); // Use this for debugging.
  private:
   static const Real HC;
@@ -92,6 +97,9 @@ class WindParameter
   bool isExpansion;
   bool isOpticallyThick;
   bool isHeII;
+  Real itsTau0RAD; // Three RAD-specific model parameters 
+  Real itsDeltaERAD;
+  Real itsGammaRAD;
   Real itsWavelength;
   Real itsShift;
   Real itsVelocity; // in units of the speed of light
@@ -103,6 +111,8 @@ class WindParameter
   void setOpticalDepthParameters (const RealArray& parameter);
   void setProfileParameters (const RealArray& parameter);
   void setAbsorptionParameters (const RealArray& parameter);
+  void setRADParameters (const RealArray& parameter);
 };
 
-#endif WIND_PARAMETER_H
+#endif
+//WIND_PARAMETER_H

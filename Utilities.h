@@ -38,6 +38,7 @@ Ne3F, Ne3G, NeM2, facNe3F, facNe3G, facNeM2};
 int compare (Real a, Real b);
 Real uPZ (Real p, Real z);
 Real muPZ (Real p, Real z);
+Real muPU (Real p, Real u);
 bool isOcculted (Real p, Real z);
 bool badCoordinates (Real p, Real z);
 size_t BinarySearch (const RealArray& array, Real value);

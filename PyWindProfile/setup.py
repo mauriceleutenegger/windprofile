@@ -15,6 +15,8 @@ sourceFileList = ['PyWindProfile/PyWindProfile.cpp',\
                   '../NumericalOpticalDepthU.cpp',\
                   '../NumericalOpticalDepthZ.cpp',\
                   '../RAD_OpticalDepth.cpp',\
+                  '../RAD_OpticalDepthU.cpp',\
+                  '../RAD_OpticalDepthZ.cpp',\
                   '../mal_Integration.cpp',\
                   '../Lx.cpp',\
                   '../ResonanceScattering.cpp',\

@@ -29,9 +29,11 @@ Lx::Lx (Real q, Real U0, Real Umin, Real beta, HeLikeType type,
 	Velocity* V, HeLikeRatio* He, ResonanceScattering* RS, OpticalDepth* Tau)
   : Integral (), itsQ (q), itsU0 (U0), itsUmin (Umin), itsBeta (beta), itsKappaRatio (0.),
     isTransparent (false), isHeLike (false), isHeII (false),
+    isRADTransparent (true),
     itsHeLikeType (type), itsVelocity (V), itsHeLikeRatio (He), 
     itsResonanceScattering (RS), itsOpticalDepth (Tau), 
-    itsOpticalDepthHeII (NULL), itsUxRoot (0) 
+    itsOpticalDepthHeII (NULL), itsRAD_OpticalDepth (NULL),
+    itsUxRoot (0) 
 {
   checkInput ();
   allocateClasses ();
@@ -43,9 +45,28 @@ Lx::Lx (Real q, Real U0, Real Umin, Real beta, Real kappaRatio, HeLikeType type,
 	OpticalDepth* Tau, OpticalDepth* TauHeII)
   : Integral (), itsQ (q), itsU0 (U0), itsUmin (Umin), itsBeta (beta), itsKappaRatio (kappaRatio),
     isTransparent (false), isHeLike (false), isHeII (true),
+    isRADTransparent (true),
     itsHeLikeType (type), itsVelocity (V), itsHeLikeRatio (He), 
     itsResonanceScattering (RS), itsOpticalDepth (Tau), 
-    itsOpticalDepthHeII (TauHeII), itsUxRoot (0) 
+    itsOpticalDepthHeII (TauHeII), itsRAD_OpticalDepth (NULL),
+    itsUxRoot (0) 
+{
+  checkInput ();
+  allocateClasses ();
+  return;
+}
+
+Lx::Lx (Real q, Real U0, Real Umin, Real beta, HeLikeType type, 
+	Velocity* V, HeLikeRatio* He, ResonanceScattering* RS,
+	OpticalDepth* Tau, RAD_OpticalDepth* RAD_Tau)
+  : Integral (), itsQ (q), itsU0 (U0), itsUmin (Umin), itsBeta (beta),
+    itsKappaRatio (0.),
+    isTransparent (false), isHeLike (false), isHeII (false),
+    isRADTransparent (false),
+    itsHeLikeType (type), itsVelocity (V), itsHeLikeRatio (He), 
+    itsResonanceScattering (RS), itsOpticalDepth (Tau), 
+    itsOpticalDepthHeII (NULL), itsRAD_OpticalDepth (RAD_Tau),
+    itsUxRoot (0) 
 {
   checkInput ();
   allocateClasses ();
@@ -97,6 +118,7 @@ void Lx::setHeLikeType (HeLikeType type)
 
 // Is there a different MIN function available? 
 // Perhaps in one of the c++ libraries.
+
 Real Lx::getLx (Real x)
 {
   if (compare (fabs (x), 1.) != -1) return 0.;
@@ -133,6 +155,9 @@ Real Lx::getLx (Real x)
   } else {
     answer = qagp (0., Ux);
   }
+  if (getStatus ()) {
+    cout << "Lx error report:" << itsX << "\n";
+  }
   return answer;
   //return qagp (0., Ux);
   // it's better to avoid the ambiguity of what happens at u = 0.
@@ -166,7 +191,8 @@ double Lx::integrand (double u)
   if  (isOcculted (p, z)) return 0.;
   // continuum optical depth
   Real Transmission = 1.;
-  if (!isTransparent) { // Transparent is a flag to allow for easy
+  if (!isTransparent) {
+    // Transparent is a flag to allow for easy
     // calculation of a profile with zero optical depth
     Real tau = itsOpticalDepth->getOpticalDepth (p, z);
     if (isHeII) { // opacity from He++ recombining to He+
@@ -190,10 +216,16 @@ double Lx::integrand (double u)
   if (!isHeLike || (itsHeLikeType == wResonance)) { 
     EscapeProbability = itsResonanceScattering->getEscapeProbability (u, mu);
   }
+  Real RADTransmission = 1.;
+  if (!isRADTransparent) {
+    Real RADtau = itsRAD_OpticalDepth->getOpticalDepth (p,z);
+    RADTransmission = exp (-1. * RADtau);
+  }
   double Integrand = pow (u, itsQ) / gsl_pow_3 (w); // emission
   Integrand *= Transmission; // absorption
   Integrand *= HeLikeFactor; // radial dependence of f/i ratio
   Integrand *= EscapeProbability; // resonance scattering
+  Integrand *= RADTransmission; // absorption due to RAD
   return Integrand;
 }
 

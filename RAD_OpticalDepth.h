@@ -1,6 +1,7 @@
 /***************************************************************************
-    RAD_OpticalDepth.h   - Calculates the optical depth to X-rays for a stellar
-                       wind along a ray p from point z.
+    RAD_OpticalDepth.h   - Calculates the optical depth to X-rays from 
+                           Resonant Auger Destruction (RAD) for a stellar
+                           wind along a ray p from point z.
 
                              -------------------
     begin				: May 2024
@@ -29,19 +30,50 @@
 #include "Utilities.h"
 #include "mal_integration.h"
 
-class RAD_OpticalDepth : public Integral {
+class RAD_OpticalDepth;
+
+class RAD_OpticalDepthZ : public Integral {
+public:
+  RAD_OpticalDepthZ (RAD_OpticalDepth* A);
+  ~RAD_OpticalDepthZ () {return;}
+  Real getOpticalDepth (Real z1, Real z2);
+  double integrand (double z);
+private:
+  RAD_OpticalDepth* itsRADOD;
+  // to prevent copying and assignment:
+  RAD_OpticalDepthZ (const RAD_OpticalDepthZ & A);
+  RAD_OpticalDepthZ operator = (const RAD_OpticalDepthZ& A);
+};
+
+class RAD_OpticalDepthU : public Integral {
+public:
+  RAD_OpticalDepthU (RAD_OpticalDepth* A);
+  ~RAD_OpticalDepthU () {return;}
+  Real getOpticalDepth (Real z1, Real z2);
+  Real getOpticalDepth (Real z);
+  double integrand (double z);
+private:
+  bool isPositiveMu;
+  RAD_OpticalDepth* itsRADOD;
+  // to prevent copying and assignment:
+  RAD_OpticalDepthU (const RAD_OpticalDepthU & A);
+  RAD_OpticalDepthU operator = (const RAD_OpticalDepthU& A);
+};
+
+class RAD_OpticalDepth {
  public:
   RAD_OpticalDepth (Velocity* V, Real DeltaE, Real Gamma, Real Tau0,
 		    Real Vinfty); // constructor
   //~RAD_OpticalDepth (); // destructor
   Real getOpticalDepth (Real p, Real z);
+  Real getPhi (Real wz);
+  Real getP () {return itsP;}
+  Real getW (Real u) {return itsVelocity->getVelocity (u);}
   void initialize (Real p, Real z); // setup to manually call integrand
   // initialize is also called by getOpticalDepth
-  double integrand (double z);
  private:
-  // add the characteristic optical depth as a parameter
-  // use it in getOpticalDepth
-  // get it from the constructor
+  static const Real LARGE_OPTICAL_DEPTH;
+  static const Real MU0;
   Real itsP;
   Real itsZ0;
   Real itsMu0;
@@ -52,9 +84,13 @@ class RAD_OpticalDepth : public Integral {
   Real itsGamma; // same units as DeltaE; i.e. gamma / Eabs
   Real itsTau0;
   Real itsVinfty; // in units of speed of light
+  bool isTransparent;
   Velocity* itsVelocity;
-  // are allocators and deallocators needed?
-
+  RAD_OpticalDepthZ* itsRADODZ;
+  RAD_OpticalDepthU* itsRADODU;
+  void checkInput ();
+  void allocateRAD_OpticalDepthZU ();
+  void freeRAD_OpticalDepthZU ();
   // To prevent copying and assignment:
   //RAD_OpticalDepth (RAD_OpticalDepth const & T);
   //RAD_OpticalDepth operator = (RAD_OpticalDepth const & T);

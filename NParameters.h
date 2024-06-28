@@ -1,11 +1,11 @@
 /***************************************************************************
-    FluxIntegral.h   - Integrates Lx dx
-                       L (x1, x2) = int^x2_x1 dx Lx
+    NParameters.h   - This header file hardcodes the number of parameters
+                      supplied by the xspec models in lmodel.dat
 
                              -------------------
-    begin				: December 2006
-    copyright			: (C) 2006 by Maurice Leutenegger
-    email				: maurice@astro.columbia.edu
+    begin				: June 2024
+    copyright			: (C) 2024 by Maurice Leutenegger
+    email				: maurice.a.leutenegger@nasa.gov
  ***************************************************************************/
  /* This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,32 +21,15 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA */
 
-#ifndef MAL_FLUX_INTEGRAL_H
-#define MAL_FLUX_INTEGRAL_H
 
-#include <stdbool.h>
-#include "xsTypes.h"
-#include "mal_integration.h"
-#include "Utilities.h"
-#include "Lx.h"
-#include "WindParameter.h"
+#ifndef WP_NPARAMETERS_H
+#define WP_NPARAMETERS_H
 
-class FluxIntegral : public Integral
-{
- public:
-  FluxIntegral (Lx* lx);
-  ~FluxIntegral ();
-  Real getFlux (Real x1, Real x2);
-  Real getFlux (); // integrate over -1. < x < 1.
-  double integrand (double x);
- private:
-  Lx* itsLx;
-  // To prevent copying or assignment;
-  FluxIntegral (const FluxIntegral & I);
-  FluxIntegral operator = (const FluxIntegral & I);
-  Real itsXKink;
-  Real itsXOcc;
-};
+static const size_t WINDPROF_N_PARAMETERS (18);
+static const size_t HWIND_N_PARAMETERS (18);
+static const size_t HEWIND_N_PARAMETERS (20);
+static const size_t ABSWIND_N_PARAMETERS (7);
+static const size_t RADWIND_N_PARAMETERS (10);
 
 #endif
-//MAL_FLUX_INTEGRAL_H
+// WP_NPARAMETERS_H

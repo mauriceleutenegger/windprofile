@@ -31,6 +31,7 @@
 #include "HeLikeRatio.h"
 #include "mal_integration.h"
 #include "UxRoot.h"
+#include "RAD_OpticalDepth.h"
 
 class Lx : public Integral
 {
@@ -40,10 +41,15 @@ class Lx : public Integral
   Lx (Real q, Real U0, Real Umin, Real beta, Real kappaRatio, HeLikeType type, 
       Velocity* V, HeLikeRatio* He, ResonanceScattering* RS, 
       OpticalDepth* Tau, OpticalDepth* TauHeII);
+  Lx (Real q, Real U0, Real Umin, Real beta, HeLikeType type, Velocity* V, 
+      HeLikeRatio* He, ResonanceScattering* RS, OpticalDepth* Tau,
+      RAD_OpticalDepth* RAD_Tau);
   ~Lx ();
   void setHeLikeType (HeLikeType type);
   void setTransparent () {isTransparent = true; return;}
   void notTransparent () {isTransparent = false; return;}
+  void setRADTransparent () {isRADTransparent = true; return;}
+  void notRADTransparent () {isRADTransparent = false; return;}
   Real getLx (Real x);
   Real getXKink ();
   Real getXOcc ();
@@ -58,12 +64,14 @@ class Lx : public Integral
   bool isTransparent;
   bool isHeLike;
   bool isHeII;
+  bool isRADTransparent;
   HeLikeType itsHeLikeType;
   Velocity* itsVelocity;
   HeLikeRatio* itsHeLikeRatio;
   ResonanceScattering* itsResonanceScattering;
   OpticalDepth* itsOpticalDepth;
   OpticalDepth* itsOpticalDepthHeII;
+  RAD_OpticalDepth* itsRAD_OpticalDepth;
   UxRoot* itsUxRoot;
   double integrand0 ();
   void checkInput ();
@@ -74,4 +82,6 @@ class Lx : public Integral
   Lx operator = (const Lx & l);
 };
 
-#endif//MAL_LX_H
+#endif
+//MAL_LX_H
+

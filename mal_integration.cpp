@@ -222,7 +222,7 @@ double Integral::qagil (double b)
     (&F, b, itsEpsAbs, itsEpsRel, itsLimit, itsWorkspace, &itsResult, 
      &itsAbsErr);
   if (itsStatus) {
-    handleError ("qagiu");
+    handleError ("qagil");
     return 0.;
   }
   return itsResult;
@@ -244,6 +244,10 @@ void Integral::handleError (string functionName) {
 	 << endl;
   } else if (itsStatus == GSL_EINVAL) {
     cout << "Error code is GSL_EINVAL. Some input was invalid.";
+  } else if (itsStatus == GSL_EMAXITER) {
+    cout << "Error code is GSL_EMAXITER. Integration exceeded maximum number of iterations.";
+  } else if (itsStatus == GSL_EROUND) {
+    cout << "Error code is GSL_EROUND. Integration failed because of roundoff error.";
   } else {
     cout << "Error code number is " << itsStatus << endl;
   }

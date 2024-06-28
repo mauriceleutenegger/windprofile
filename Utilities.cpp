@@ -49,6 +49,12 @@ Real muPZ (Real p, Real z)
   return z * u;
 }
 
+Real muPU (Real p, Real u)
+{
+  Real pu = p * u;
+  return sqrt (1. -  pu * pu);
+}
+
 bool isOcculted (Real p, Real z)
 {
   Real r = hypot (p, z);

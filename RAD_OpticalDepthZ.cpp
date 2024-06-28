@@ -1,11 +1,12 @@
 /***************************************************************************
-    FluxIntegral.h   - Integrates Lx dx
-                       L (x1, x2) = int^x2_x1 dx Lx
+    RAD_OpticalDepthZ.h   - Calculates the optical depth to X-rays from 
+                           Resonant Auger Destruction (RAD) for a stellar
+                           wind along a ray p from point z.
 
                              -------------------
-    begin				: December 2006
-    copyright			: (C) 2006 by Maurice Leutenegger
-    email				: maurice@astro.columbia.edu
+    begin				: May 2024
+    copyright			: (C) 2024 by Gabe Grell and Maurice Leutenegger
+    email				: gabriel.j.grell@nasa.gov maurice.a.leutenegger@nasa.gov
  ***************************************************************************/
  /* This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,32 +22,26 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA */
 
-#ifndef MAL_FLUX_INTEGRAL_H
-#define MAL_FLUX_INTEGRAL_H
+#include "RAD_OpticalDepth.h"
 
-#include <stdbool.h>
-#include "xsTypes.h"
-#include "mal_integration.h"
-#include "Utilities.h"
-#include "Lx.h"
-#include "WindParameter.h"
-
-class FluxIntegral : public Integral
+RAD_OpticalDepthZ::RAD_OpticalDepthZ (RAD_OpticalDepth* A)
+  : Integral (), itsRADOD (A)
 {
- public:
-  FluxIntegral (Lx* lx);
-  ~FluxIntegral ();
-  Real getFlux (Real x1, Real x2);
-  Real getFlux (); // integrate over -1. < x < 1.
-  double integrand (double x);
- private:
-  Lx* itsLx;
-  // To prevent copying or assignment;
-  FluxIntegral (const FluxIntegral & I);
-  FluxIntegral operator = (const FluxIntegral & I);
-  Real itsXKink;
-  Real itsXOcc;
-};
+  return;
+}
 
-#endif
-//MAL_FLUX_INTEGRAL_H
+// z1 < z2
+Real RAD_OpticalDepthZ::getOpticalDepth (Real z1, Real z2)
+{
+  return qag (z1, z2);
+}
+
+double RAD_OpticalDepthZ::integrand (double z)
+{
+  double u = uPZ (itsRADOD->getP (), z);
+  double w = itsRADOD->getW (u);
+  double mu = muPZ (itsRADOD->getP (), z);
+  double wz = mu * w;
+  double phi = itsRADOD->getPhi (wz);
+  return u * u * phi / w;
+}

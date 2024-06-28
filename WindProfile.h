@@ -61,6 +61,7 @@ class WindProfile
    never gets used. */
   //  NumericalOpticalDepth* itsNumericalOpticalDepth;
   Porosity* itsPorosity;
+  RAD_OpticalDepth* itsRAD_OpticalDepth;
   Real itsTotal;
   bool isFinite;
   bool isNumerical;

@@ -25,11 +25,12 @@
 #include "WindProfile.h"
 #include "WindAbsorptionProfile.h"
 #include "isisCPPFunctionWrapper.h"
+#include "NParameters.h"
 
-static const size_t WINDPROF_N_PARAMETERS (18);
-static const size_t HWIND_N_PARAMETERS (18);
-static const size_t HEWIND_N_PARAMETERS (20);
-static const size_t ABSWIND_N_PARAMETERS (7);
+//static const size_t WINDPROF_N_PARAMETERS (18);
+//static const size_t HWIND_N_PARAMETERS (18);
+//static const size_t HEWIND_N_PARAMETERS (20);
+//static const size_t ABSWIND_N_PARAMETERS (7);
 
 extern "C" void windprof
 (const RealArray& energy, const RealArray& parameter, 
@@ -55,6 +56,15 @@ extern "C" void hewind
  /*@unused@*/ const string& init);
 
 extern "C" void C_hewind
+(const Real* energy, int Nflux, const Real* parameter, int spectrum, 
+ Real* flux, Real* fluxError, const char* init);
+
+extern "C" void radwind
+(const RealArray& energy, const RealArray& parameter, 
+ /*@unused@*/ int spectrum, RealArray& flux, /*@unused@*/ RealArray& fluxError,
+ /*@unused@*/ const string& init);
+
+extern "C" void C_radwind
 (const Real* energy, int Nflux, const Real* parameter, int spectrum, 
  Real* flux, Real* fluxError, const char* init);
 
@@ -100,6 +110,17 @@ void hewind
   return;
 }
 
+void radwind
+(const RealArray& energy, const RealArray& parameter, 
+ /*@unused@*/ int spectrum, RealArray& flux, /*@unused@*/ RealArray& fluxError,
+ /*@unused@*/ const string& init)
+{
+  fluxError.resize (0);
+  WindProfile W (energy, parameter, rad);
+  W.getModelFlux (flux);
+  return;
+}  
+
 void abswind
 (const RealArray& energy, const RealArray& parameter, 
  /*@unused@*/ int spectrum, RealArray& flux, /*@unused@*/ RealArray& fluxError,
@@ -137,6 +158,15 @@ void C_hewind
 {
   isisCPPFunctionWrapper (energy, Nflux, parameter, spectrum, flux, fluxError,
 			  init, HEWIND_N_PARAMETERS, &hewind);
+  return;
+}
+
+void C_radwind
+(const Real* energy, int Nflux, const Real* parameter, int spectrum, 
+ Real* flux, Real* fluxError, const char* init)
+{
+  isisCPPFunctionWrapper (energy, Nflux, parameter, spectrum, flux, fluxError,
+			  init, RADWIND_N_PARAMETERS, &radwind);
   return;
 }
 

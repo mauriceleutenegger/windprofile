@@ -48,7 +48,7 @@ void isisCPPFunctionWrapper
   size_t fluxSize = fluxArray.size ();
   size_t fluxErrorSize = fluxErrorArray.size ();
   if (fluxSize == 0) {
-    for (size_t i = 0; i < Nflux; i++) {
+    for (size_t i = 0; i < (size_t) Nflux; i++) {
       flux[i] = 0;
       fluxError[i] = 0;
     }
@@ -58,23 +58,30 @@ void isisCPPFunctionWrapper
   if (fluxErrorSize == 0) {
     useError = false;
   }
-  if (fluxSize < Nflux) {
+  if (fluxSize < (size_t) Nflux) {
     std::cerr << "isisCPPFunctionWrapper: unexpected array " <<
       "size\nfluxArray.size = " << fluxSize << "\nNFlux = " <<
       Nflux << std::endl;
-    for (size_t i = 0; i < Nflux; i++) {
+    for (size_t i = 0; i < (size_t) Nflux; i++) {
       flux[i] = 0;
       fluxError[i] = 0;
     }
     return;
   }
-  for (size_t i = 0; i < Nflux; i++) {
+  for (size_t i = 0; i < (size_t) Nflux; i++) {
     flux[i] = fluxArray[i];
-    if (fluxErrorSize == Nflux) {
+    //if (fluxErrorSize == (size_t) Nflux) {
+    //  fluxError[i] = fluxErrorArray[i];
+    //} else {
+    //  fluxError[i] = 0;
+    //}
+  }
+  // fill error on a second loop only if required
+  if (useError) {
+    for (size_t i = 0; i < (size_t) Nflux; i++) {
       fluxError[i] = fluxErrorArray[i];
-    } else {
-      fluxError[i] = 0;
     }
   }
+  
   return;
 }

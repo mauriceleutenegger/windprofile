@@ -29,6 +29,8 @@ for i in range (p.size) :
 
 #itest = 99
 itest = 0
+#itest = 1
+#itest = 2
 
 print (p[itest])
 
@@ -37,3 +39,5 @@ pl.xlabel ('z')
 pl.ylabel ('t')
 pl.legend ()
 pl.savefig ('RAD_t_p1.png')
+#pl.savefig ('RAD_t_p2.png')
+#pl.savefig ('RAD_t_p3.png')

@@ -23,12 +23,14 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA */
 
 #include "WindParameter.h"
+#include "NParameters.h"
 #include <iostream>
 #include <gsl/gsl_const_cgsm.h>
 
-static const size_t WINDPROF_N_PARAMETERS (18);
-static const size_t HWIND_N_PARAMETERS (18);
-static const size_t HEWIND_N_PARAMETERS (20);
+//static const size_t WINDPROF_N_PARAMETERS (18);
+//static const size_t HWIND_N_PARAMETERS (18);
+//static const size_t HEWIND_N_PARAMETERS (20);
+//static const size_t RADWIND_N_PARAMETERS (9);
 
 inline Real ConvertWavelength (Real s);
 
@@ -46,6 +48,7 @@ WindParameter::WindParameter ()
     isProlate (false),
     isRosseland (false), isExpansion (false), isOpticallyThick (false),
     isHeII (false),
+    itsTau0RAD (0.), itsDeltaERAD (0.), itsGammaRAD (0.),
     itsWavelength (20.), itsShift (0.), itsVelocity (0.001), isVerbose (false),
     itsG (0.)
 {
@@ -61,6 +64,7 @@ WindParameter::WindParameter (const RealArray& parameter, ModelType type)
     isProlate (false),
     isRosseland (false), isExpansion (false), isOpticallyThick (false),
     isHeII (false),
+    itsTau0RAD (0.), itsDeltaERAD (0.), itsGammaRAD (0.),
     itsWavelength (20.), itsShift (0.), itsVelocity (0.001), isVerbose (false),
     itsG (0.)
 {
@@ -98,6 +102,11 @@ void WindParameter::setParameters
     checkInput ();
     return;
   }
+  if (itsModelType == rad) {
+    setRADParameters (parameter);
+    checkInput ();
+    return;
+  }
   itsQ = parameter [i++];
   itsTauStar = parameter [i++];
   itsU0 = parameter [i++];
@@ -130,6 +139,8 @@ void WindParameter::setParameters
   isExpansion = bool (parameter [i++]);
   isOpticallyThick = bool (parameter [i++]);
   if (itsModelType == general) {
+    itsWavelength = parameter [i++];
+  } else if (itsModelType == rad) {
     itsWavelength = parameter [i++];
   } else {
     itsAtomicNumber = int (parameter [i++]);
@@ -203,6 +214,22 @@ void WindParameter::setAbsorptionParameters (const RealArray& parameter)
   return;
 }
 
+void WindParameter::setRADParameters (const RealArray& parameter)
+{
+  size_t i (0);
+  itsQ = parameter [i++];
+  itsTauStar = parameter [i++];
+  itsU0 = parameter [i++];
+  itsUmin = parameter[i++];
+  itsBeta = parameter [i++];
+  itsTau0RAD = parameter[i++];
+  itsDeltaERAD = parameter[i++];
+  itsGammaRAD = parameter[i++];
+  itsWavelength = parameter [i++];
+  itsVelocity = convert_KMS_C (parameter [i++]);
+  return;
+}
+
 
 // opticaldepth and profile are passed from IDL.
 // The others are passed from XSPEC and thus contain an extra parameter
@@ -216,6 +243,8 @@ bool WindParameter::correctNParameters (size_t N)
     ExpectedParameters = 7;
   } else if (itsModelType == profile) {
   ExpectedParameters = 12; */
+  } else if (itsModelType == rad) {
+    ExpectedParameters = RADWIND_N_PARAMETERS + 1;
   } else if (itsModelType == helike) {
     ExpectedParameters = HEWIND_N_PARAMETERS + 1;
   } else {
@@ -277,6 +306,18 @@ void WindParameter::checkInput ()
     cerr << "Parameter check: Invalid G.\n";
     itsG = 0.;
   }
+  if (compare (itsTau0RAD, 0.) == -1) { 
+    cerr << "Parameter check: Invalid Tau0RAD.\n";
+    itsTau0RAD = 0.;
+  }
+  if (compare (fabs(itsDeltaERAD), 0.1) == 1) { // deltaE/E > 0.1
+    cerr << "Parameter check: Invalid DeltaERAD.\n";
+    itsDeltaERAD = 0.;
+  }
+  if (compare (itsGammaRAD, 0.) == -1) { 
+    cerr << "Parameter check: Invalid GammaRAD.\n";
+    itsGammaRAD = 0.;
+  }
   if (compare (itsWavelength, 1.) == -1) {
     dump ();
     cerr << "Parameter check: Invalid wavelength.\n";
@@ -329,6 +370,9 @@ void WindParameter::dump ()
   cout << "Velocity (c) " << itsVelocity << "\n";
   cout << "G " << itsG << "\n";
   cout << "P " << itsP << "\n";
+  cout << "Tau0RAD " << itsTau0RAD << "\n";
+  cout << "DeltaERAD " << itsDeltaERAD << "\n";
+  cout << "GammaRAD " << itsGammaRAD << "\n";
   return;
 }
 
@@ -420,4 +464,18 @@ void WindParameter::initializeLx
   return;
 }
 
+void WindParameter::initializeLx
+(Lx*& lx, Velocity* V, HeLikeRatio* He, ResonanceScattering* RS,
+ OpticalDepth* Tau, RAD_OpticalDepth* RAD_Tau)
+{
+  lx = new Lx (itsQ, itsU0, itsUmin, itsBeta, wResonance, V, He, RS, Tau,
+	       RAD_Tau);
+  return;
+}
 
+void WindParameter::initializeRAD_OpticalDepth // fixme
+(RAD_OpticalDepth*& RAD_Tau, Velocity* V)
+{
+  RAD_Tau = new RAD_OpticalDepth (V, itsDeltaERAD, itsGammaRAD, itsTau0RAD, itsVelocity);
+  return;
+}
