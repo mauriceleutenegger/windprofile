@@ -6,10 +6,11 @@ import matplotlib.pyplot as pl
 import PyWindProfile as wp
 
 #p = np.arange (1.01,3.,0.01)
-p = np.arange (1.01,3.1,1.)
-zampl = 4.0
-zintampl = 10.0
-z0 = np.arange (-zampl,zampl+0.01, 1.0)
+p = np.arange (2.0,10.1,1.)
+zampl = 100.0
+dzampl = 10.0
+zintampl = 100.0
+z0 = np.arange (-zampl,zampl+0.01, dzampl)
 #z = np.arange (-10.0, 10.001, 0.001)
 
 #tau0 = 1.0
@@ -40,7 +41,7 @@ for i in range (p.size) :
     zlist.append (thiszlist)
     ilist.append (thisilist)
 #itest = 99
-itest = 1
+itest = -1
 
 print (p[itest])
 
@@ -51,4 +52,4 @@ for j in range (z0.size) :
 pl.xlabel ('z')
 pl.ylabel ('t')
 pl.legend ()
-pl.savefig ('RAD_i_p2.png')
+pl.savefig ('RAD_i_p10.png')

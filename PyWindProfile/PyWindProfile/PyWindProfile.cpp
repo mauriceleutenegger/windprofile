@@ -248,11 +248,12 @@ static PyObject* Py_RAD_OpticalDepth_integrand (PyObject* obj, PyObject* args)
       this must then be cast to npy_float64* so we know the type;
       and then the whole thing must be dereferenced to get the actual value.
     */
-    // FIX ME - integrand is no longer a direct part of the lead class
-    /*for (npy_intp i = 0; i < zsize; i++) {
+    /* we use the getZIntegrand (z) function to dig into the
+       z optical depth integral class so we can study the integrand in dz */
+    for (npy_intp i = 0; i < zsize; i++) {
       *((npy_float64*) PyArray_GETPTR1 (integrand, i)) =
-        TAU.integrand (*((npy_float64*) PyArray_GETPTR1 (z, i)));
-	}*/
+        TAU.getZIntegrand (*((npy_float64*) PyArray_GETPTR1 (z, i)));
+	}
   
     delete V;
     V = NULL;

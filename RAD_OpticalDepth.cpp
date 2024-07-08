@@ -125,3 +125,10 @@ Real RAD_OpticalDepth::getPhi (Real wz)
   Real phi = gsl_ran_cauchy_pdf (x, itsGamma / 2.);
   return phi;
 }
+
+/* allows exploring the behavior of the integrand in the dz integration
+   using the python interface */
+double RAD_OpticalDepth::getZIntegrand (double z)
+{
+  return itsRADODZ->integrand (z);
+}

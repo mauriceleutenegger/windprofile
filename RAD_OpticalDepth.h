@@ -71,6 +71,7 @@ class RAD_OpticalDepth {
   Real getW (Real u) {return itsVelocity->getVelocity (u);}
   void initialize (Real p, Real z); // setup to manually call integrand
   // initialize is also called by getOpticalDepth
+  double getZIntegrand (double z);
  private:
   static const Real LARGE_OPTICAL_DEPTH;
   static const Real MU0;
