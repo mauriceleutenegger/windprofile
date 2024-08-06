@@ -70,7 +70,7 @@ void WindProfile::allocateClasses ()
   isHeII = itsWindParameter->getHeII ();
   itsWindParameter->initializeVelocity (itsVelocity);
   if (itsModelType == helike) {
-    itsWindParameter->initializeHeLikeRatio (itsHeLikeRatio);
+    itsWindParameter->initializeHeLikeRatio (itsHeLikeRatio, itsVelocity);
   } else itsHeLikeRatio = 0;
   // HeLikeRatio will only be utilized if it's not a pointer to NULL.
   itsWindParameter->initializeResonanceScattering 

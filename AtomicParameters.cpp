@@ -157,12 +157,20 @@ void HeLikeParameters::initialize ()
      0.342, 0., 0.425, 0., 0.507, 0., 0., 0., 0., 0., 0.584};
   /* From BDT72. Ar is interpolated from S and Ca. */
 
+  const Real Nc_Array[] =
+    {0., 0., 0., 0., 0., 6.7e8, 5.9e9, 3.4e10, 1.e30, 6.4e11,
+     1.e30, 6.2e12, 1.7e13, 4.0e13, 0., 1.9e14, 0., 1.e30, 0., 2.1e15,
+     0., 0., 0., 0., 0., 4.7e16};
+  /* From BDT72. F, Na, Ar have large dummy values 1.e30 to turn off density
+     effects because I was too lazy to put in a number. */
+  
   WWavelength = RealArray (WWavelengthArray, NumberOfAtoms);
   XWavelength = RealArray (XWavelengthArray, NumberOfAtoms);
   YWavelength = RealArray (YWavelengthArray, NumberOfAtoms);
   ZWavelength = RealArray (ZWavelengthArray, NumberOfAtoms);
   R0 = RealArray (R0Array, NumberOfAtoms);
   XFraction = RealArray (XFractionArray, NumberOfAtoms);
+  Nc = RealArray (Nc_Array, NumberOfAtoms);
 
   return;
 }
@@ -211,6 +219,12 @@ Real HeLikeParameters::getXFraction () const
 {
   size_t i (itsAtomicNumber - 1);
   return XFraction[i];
+}
+
+Real HeLikeParameters::getNc () const
+{
+  size_t i (itsAtomicNumber - 1);
+  return Nc[i];
 }
 
 /*-----------------------NeLikeParameters-------------------------*/

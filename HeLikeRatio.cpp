@@ -25,17 +25,18 @@
 
 using namespace std;
 
-HeLikeRatio::HeLikeRatio (Real R0, Real P)
-  : itsR0 (R0), itsP (P)
+HeLikeRatio::HeLikeRatio (Real R0, Real P, Real N0, Velocity* V)
+  : itsR0 (R0), itsP (P), itsN0 (N0), itsVelocity (V)
 {
   checkInput ();
   return;
 }
 
-void HeLikeRatio::setParameters (Real R0, Real P)
+void HeLikeRatio::setParameters (Real R0, Real P, Real N0)
 {
   itsR0 = R0; 
-  itsP = P; 
+  itsP = P;
+  itsN0 = N0;
   checkInput();
   return;
 }
@@ -49,6 +50,10 @@ void HeLikeRatio::checkInput ()
   if (compare (itsP, 0.) == -1) {
     cerr << "HeLikeRatio: Invalid P " << itsP;
     itsP = 0.;
+  }
+  if (compare (itsN0, 0.) == -1) {
+    cerr << "HelikeRatio: Invalid N0 " << itsN0 << endl;
+    itsN0 = 0.;
   }
   return;
 }
@@ -72,6 +77,7 @@ Real HeLikeRatio::getR0 ()
 Real HeLikeRatio::getR (Real u)
 {
   Real dilution = 1. - sqrt (1. - u * u); // actually dilution is twice this
-  return (itsR0 / (1. + itsP * dilution)); // <-- but this is correct
+  Real density = itsN0 * u * u / itsVelocity->getVelocity (u); // dimensionless
+  return (itsR0 / (1. + itsP * dilution + density)); // <-- but this is correct
 }
 

@@ -27,7 +27,7 @@
 
 static const size_t WINDPROF_N_PARAMETERS (18);
 static const size_t HWIND_N_PARAMETERS (18);
-static const size_t HEWIND_N_PARAMETERS (20);
+static const size_t HEWIND_N_PARAMETERS (21);
 static const size_t ABSWIND_N_PARAMETERS (7);
 static const size_t RADWIND_N_PARAMETERS (10);
 

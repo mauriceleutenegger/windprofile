@@ -43,7 +43,7 @@ WindParameter::WindParameter ()
   : itsQ (0.), itsTauStar (0.), itsU0 (0.5), itsUmin (0.), 
     itsH (0.), itsTau0Star (0.), 
     itsBeta (1.), itsBetaSobolev (0.), itsKappaRatio (0.), itsR0 (1.), itsP (0.), 
-    itsAtomicNumber (8),
+    itsN0 (0.), itsAtomicNumber (8),
     itsModelType (general), isNumerical (false), isAnisotropic (false),
     isProlate (false),
     isRosseland (false), isExpansion (false), isOpticallyThick (false),
@@ -59,7 +59,7 @@ WindParameter::WindParameter (const RealArray& parameter, ModelType type)
   : itsQ (0.), itsTauStar (0.), itsU0 (0.5), itsUmin (0.), 
     itsH (0.), itsTau0Star (0.), 
     itsBeta (1.), itsBetaSobolev (0.), itsKappaRatio (0.), itsR0 (1.), itsP (0.), 
-    itsAtomicNumber (8),
+    itsN0 (0.), itsAtomicNumber (8),
     itsModelType (general), isNumerical (false), isAnisotropic (false),
     isProlate (false),
     isRosseland (false), isExpansion (false), isOpticallyThick (false),
@@ -149,6 +149,7 @@ void WindParameter::setParameters
   itsVelocity = convert_KMS_C (parameter [i++]);
   if (itsModelType == helike) {
     itsP = parameter [i++];
+    itsN0 = parameter[i++];
   }
   isVerbose = bool (parameter [i++]);
   checkInput ();
@@ -156,8 +157,8 @@ void WindParameter::setParameters
     HLikeParameters HP (itsAtomicNumber);
     itsWavelength = HP.getWavelength ();
   } else if (itsModelType == helike) {
-    He = HeLikeParameters (itsAtomicNumber);
-    itsR0 = He.getR0 ();
+    HePar = HeLikeParameters (itsAtomicNumber);
+    itsR0 = HePar.getR0 ();
     itsWavelength = 20.;
   }
   return;
@@ -384,7 +385,7 @@ inline Real ConvertWavelength (Real s)
 
 Real WindParameter::getWavelength (HeLikeType type) const
 {
-  return (He.getWavelength (type) + itsShift);
+  return (HePar.getWavelength (type) + itsShift);
 }
 
 void WindParameter::setX 
@@ -433,9 +434,10 @@ void WindParameter::initializeOpticalDepth (OpticalDepth*& Tau,
   return;
 }
 
-void WindParameter::initializeHeLikeRatio (HeLikeRatio*& He)
+void WindParameter::initializeHeLikeRatio (HeLikeRatio*& He, Velocity* V)
 {
-  He = new HeLikeRatio (itsR0, itsP);
+  He = new HeLikeRatio (itsR0, itsP, itsN0 / HePar.getNc (), V);
+  // pass dimensionless N0
   return;
 }
 

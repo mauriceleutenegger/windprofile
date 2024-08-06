@@ -38,7 +38,7 @@ shift       "mA"    0.0    -100. -100.    100.   100.   -0.1
 velocity    "km/s"  2485.0  100.  100.   5000.  5000.   -0.1
 $verbose    0
 
-hewind         20     0.       1.e20  C_hewind    add  0
+hewind         21     0.       1.e20  C_hewind    add  0
 q           " "      0.0     -0.99 -0.99    5.     5.   -0.1
 taustar     " "      1.0      0.    0.    100.   100.   -0.1
 u0          " "      0.5      0.1   0.1     0.99   0.99 -0.1
@@ -58,6 +58,7 @@ $Z          12
 shift       "mA"     0.0   -100. -100.    100.   100.   -0.1
 velocity    "km/s"  2485.0  100.  100.   5000.  5000.   -0.1
 phiratio    " "      1.31e2   0.    0.      1.e8   1.e8 -0.1
+n0	    " "	     1.e11    1.    1.	   1.e20  1.e20	-0.1
 $verbose    0
 
 radwind       10    0.     1.e20   C_radwind   add  0

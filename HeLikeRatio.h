@@ -30,13 +30,16 @@
 class HeLikeRatio
 {
  public:
-  HeLikeRatio (Real R0 = 1., Real P = 0.);
-  void setParameters (Real R0, Real P);
+  HeLikeRatio (Real R0 = 1., Real P = 0., Real N0 = 0., Velocity* V = NULL);
+  void setParameters (Real R0, Real P, Real N0);
   Real getHeLikeFactor (Real u, HeLikeType = wResonance);
   Real getR0 ();
  private:
   Real itsR0; // ratio with no photoexcitation
   Real itsP; // phi_* / phi_c
+  Real itsN0; // dimensionless critical density = n_0 / n_c
+  // where n0 = m_dot / (4pi R_*^2 v_inf mu m_p)
+  Velocity* itsVelocity;
   Real getR (Real u); // ratio as a function of radius
   void checkInput ();
 };

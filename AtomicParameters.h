@@ -60,6 +60,7 @@ class HeLikeParameters : public AtomicParameters
   Real getWavelength (HeLikeType type) const;
   Real getR0 () const;
   Real getXFraction () const; // Returns x / (x + y).
+  Real getNc () const; // critical density
  private:
   static const size_t NumberOfAtoms = 26;
   RealArray WWavelength;
@@ -67,7 +68,8 @@ class HeLikeParameters : public AtomicParameters
   RealArray YWavelength;
   RealArray ZWavelength;
   RealArray R0;
-  RealArray XFraction; 
+  RealArray XFraction;
+  RealArray Nc;
   void initialize ();
 };
 

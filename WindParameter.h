@@ -63,7 +63,7 @@ class WindParameter
   void initializeVelocity (Velocity*& V);
   void initializePorosity (Porosity*& P);
   void initializeOpticalDepth (OpticalDepth*& Tau, OpticalDepth*& TauHeII);
-  void initializeHeLikeRatio (HeLikeRatio*& He);
+  void initializeHeLikeRatio (HeLikeRatio*& He, Velocity* V);
   void initializeResonanceScattering (ResonanceScattering*& RS, Velocity* V);
   void initializeLx (Lx*& lx, Velocity* V, HeLikeRatio* He, 
 		     ResonanceScattering* RS, OpticalDepth* Tau);
@@ -88,6 +88,7 @@ class WindParameter
   Real itsKappaRatio;
   Real itsR0;
   Real itsP;
+  Real itsN0; // in cm-3
   int itsAtomicNumber;
   ModelType itsModelType;
   bool isNumerical;
@@ -104,7 +105,7 @@ class WindParameter
   Real itsShift;
   Real itsVelocity; // in units of the speed of light
   bool isVerbose;
-  HeLikeParameters He;
+  HeLikeParameters HePar;
   Real itsG;
   bool correctNParameters (size_t N);
   void checkInput ();
